@@ -8,17 +8,17 @@ Note that this does not replace any primary systems and should only be used as a
 
 ## Features
 
-- Dual USB 2.0 receptacles for [NooElec NESDR Nano 2+](https://www.nooelec.com/store/nesdr-nano2.html) or similar (USB2512)
-- Pressure altimeter (BMP280)
-- 9-axis motion tracking (ICM-20948)
-- GNSS (GPS, Galileo, GLONASS, BeiDou) with 2.5 m CEP accuracy (CAM-M8Q)
+- Dual USB 2.0 receptacles for [NooElec NESDR Nano 2+](https://www.nooelec.com/store/nesdr-nano2.html) or similar, [Microchip USB2512](https://www.microchip.com/en-us/product/USB2512)
+- Pressure altimeter, [Bosch BMP280](https://www.bosch-sensortec.com/products/environmental-sensors/pressure-sensors/bmp280/)
+- 9-axis motion tracking, [TDK ICM-20948](https://invensense.tdk.com/products/motion-tracking/9-axis/icm-20948/)
+- GNSS (GPS, Galileo, GLONASS, BeiDou) with 2.5 m CEP accuracy, [u-blox CAM-M8Q](https://www.u-blox.com/en/product/cam-m8-series)
 - GNSS backup power for faster initial lock
-- Carbon monoxide detector with audible alarm (MICS-4514)
+- Carbon monoxide detector with audible alarm [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
 - 18650 battery socket
-- 4.2 V overvoltage, 2.5 V undervoltage and over-current protection
-- USB C power with built-in 1 A charger with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters
+- 4.2 V overvoltage, 2.5 V undervoltage and over-current protection, [TI BQ2972](https://www.ti.com/product/BQ2972)
+- USB C power with built-in 1 A charger with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
 - High temperature and low temperature charge monitoring
-- Fuel gauge that monitors the battery state of charge and aging
+- Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
 - Raspberry Pi Zero 2 interface with pogo pins
 - Watchdog that resets the Raspberry Pi
@@ -29,7 +29,7 @@ Note that this does not replace any primary systems and should only be used as a
     - Green external power indicator
     - Orange charge indicator that flashes while charging and turned on when fully charged
 
-> CO-alarm, watchdog, charging temperature monitoring, battery and power management is handled by an Silicon Labs EFM8 8051 MCU.
+The CO-alarm, watchdog, charging temperature monitoring, battery and power management is handled by an [Silicon Labs EFM8BB10 8051 MCU](https://www.silabs.com/mcu/8-bit-microcontrollers/efm8-busy-bee/device.efm8bb10f4g-qfn20).
 
 ## Contents of this repository
 
