@@ -2,6 +2,12 @@
 
 Portable ADS-B/Flarm receiver, AHRS, GNSS and CO-alarm based on the Stratux project and Raspberry Pi Zero 2.
 
+This project is based on the great work of:
+- [Stratux (cyoung/stratux)](https://github.com/cyoung/stratux)
+- [Stratux - European edition (b3nn0/stratux)](https://github.com/b3nn0/stratux)
+
+Read more about the Stratux project at [stratux.me](http://stratux.me/) and at [dross:aviation](https://dross.net/aviation/).
+
 Note that this does not replace any primary systems and should only be used as a complement for increased safety and situational awareness.
 
 > THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -48,7 +54,7 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
 
 ## Building the Stratux Zero image
 
-These instructions are written for a AMD64 Ubuntu Linux environment.
+These instructions are written for a AMD64 Ubuntu Linux environment and can be run in Windows 10 WSL 2.
 
 ### Prerequisites
 
@@ -87,3 +93,14 @@ sudo mv packer-builder-arm $(dirname $(which packer))
 cd ../
 rm -Rf packer-builder-arm
 ```
+
+### Building the image
+
+The build is done using Hashicorp packer and a plugin for emulating the ARM architecture using QEMU.
+
+```bash
+sudo packer build src/image/raspberry-pi-zero-2.json
+```
+
+The build will take around 20 to 45 minutes and will result in a file named `"stratux-zero-arm64.img"`.
+This file can be flashed to an SD card using [Etcher](https://www.balena.io/etcher/) or similar software.
