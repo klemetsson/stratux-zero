@@ -45,3 +45,45 @@ Because of the global component shortage, many of the components are selected ou
 Still, several of the components are impossible to acquire separatly and may need to be desoldered from various break-out and development kits.
 
 The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching which is located on a separate PCB.
+
+## Building the Stratux Zero image
+
+These instructions are written for a AMD64 Ubuntu Linux environment.
+
+### Prerequisites
+
+Install all required components for compiling and building the Raspberry Pi Zero 2 disk image.
+
+**Install required packages:**
+
+```bash
+sudo apt-get install git unzip qemu-user-static e2fsprogs dosfstools libarchive-tools
+```
+
+**Install Packer:**
+
+```bash
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update && sudo apt-get install packer
+```
+
+**Install Go 1.17:**
+
+```bash
+wget -c https://go.dev/dl/go1.17.6.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
+export PATH=$PATH:/usr/local/go/bin
+echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee /etc/profile.d/go_path.sh
+```
+
+**Build and install packer-builder-arm plugin:**
+
+```bash
+git clone https://github.com/mkaczanowski/packer-builder-arm
+cd packer-builder-arm
+go mod download
+go build
+sudo mv packer-builder-arm $(dirname $(which packer))
+cd ../
+rm -Rf packer-builder-arm
+```

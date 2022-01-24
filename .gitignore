@@ -1,0 +1,5 @@
+# Packer
+packer_cache/
+crash.log
+*.box
+*.img

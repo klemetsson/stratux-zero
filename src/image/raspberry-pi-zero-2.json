@@ -1,0 +1,205 @@
+{
+  "variables": {
+    "stratux_version": "258ca7fc0e93bcd6efc0c7a3cf1de284fc814026",
+    "rtl_sdr_version": "0847e93e0869feab50fd27c7afeb85d78ca04631",
+    "kalibrate_rtl_version": "ed9b436ad5f1afa6509f9109bd04b7b2916cbeae",
+    "wiringpi_version": "5de0d8f5739ccc00ab761639a7e8d3d1696a480a",
+    "go_version": "1.17.6",
+    "raspios_version": "2021-11-08/2021-10-30"
+  },
+  "builders": [{
+    "type": "arm",
+    "file_urls" : ["https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-{{user `raspios_version`}}-raspios-bullseye-arm64-lite.zip"],
+    "file_checksum_url": "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-{{user `raspios_version`}}-raspios-bullseye-arm64-lite.zip.sha256",
+    "file_checksum_type": "sha256",
+    "file_target_extension": "zip",
+    "image_build_method": "resize",
+    "image_path": "stratux-zero-arm64.img",
+    "image_size": "4G",
+    "image_type": "dos",
+    "image_partitions": [
+      {
+        "name": "boot",
+        "type": "c",
+        "start_sector": "8192",
+        "filesystem": "vfat",
+        "size": "256M",
+        "mountpoint": "/boot"
+      },
+      {
+        "name": "root",
+        "type": "83",
+        "start_sector": "532480",
+        "filesystem": "ext4",
+        "size": "0",
+        "mountpoint": "/"
+      }
+    ],
+    "image_chroot_env": ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"],
+    "qemu_binary_source_path": "/usr/bin/qemu-aarch64-static",
+    "qemu_binary_destination_path": "/usr/bin/qemu-aarch64-static"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "src/image/config/01_nodoc",
+      "destination": "/etc/dpkg/dpkg.cfg.d/01_nodoc"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "# Update packages",
+        "apt-get update"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "src/image/config/config.txt",
+      "destination": "/boot/config.txt"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "# Install and configure firewall",
+        "#apt-get install -y ufw",
+        "#ufw default deny incoming",
+        "#ufw default allow outgoing",
+        "#ufw limit ssh",
+        "#ufw allow http",
+        "#ufw allow https",
+        "#systemctl enable ufw"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "# Disable swap",
+        "systemctl disable dphys-swapfile",
+        "apt-get purge -y --auto-remove dphys-swapfile",
+
+        "# Disable services we don't need",
+        "systemctl disable keyboard-setup.service",
+        "systemctl disable apt-daily.service",
+        "systemctl disable hciuart.service",
+        "systemctl disable triggerhappy.service",
+        "systemctl disable dnsmasq.service",
+        "systemctl disable dhcpcd.service",
+        "systemctl disable wpa_supplicant.service",
+        "systemctl disable apt-daily.timer",
+        "systemctl disable apt-daily-upgrade.timer",
+        "systemctl disable man-db.timer",
+
+        "# Generate ssh key for all installs. Otherwise it would have to be done on each boot, which takes a couple of seconds",
+        "ssh-keygen -A -v",
+        "systemctl disable regenerate_ssh_host_keys",
+        "/lib/console-setup/console-setup.sh",
+
+        "# Set hostname",
+        "echo 'stratux' > /etc/hostname",
+        "sed -i /etc/hosts -e \"s/raspberrypi/stratux/g\"",
+
+        "# Set the keyboard layout to US.",
+        "sed -i /etc/default/keyboard -e \"/^XKBLAYOUT/s/\\\".*\\\"/\\\"us\\\"/\"",
+
+        "# Disable serial console, disable rfkill state restore, enable wifi on boot",
+        "sed -i /boot/cmdline.txt -e \"s/console=serial0,[0-9]\\+ /systemd.restore_state=0 rfkill.default_state=1 /\"",
+
+        "# Run DHCP on eth0 when cable is plugged in",
+        "sed -i -e 's/INTERFACES=\"\"/INTERFACES=\"eth0\"/g' /etc/default/ifplugd"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "# Install required packages for Stratux",
+        "apt-get install -y libconfig9 rpi-update dnsmasq i2c-tools python3-serial jq ifplugd iptables libjpeg62-turbo libfftw3-3 libncurses6",
+
+        "# Install prerequisites for building Stratux",
+        "wget -nv -c https://go.dev/dl/go{{user `go_version`}}.linux-arm64.tar.gz -O - | tar -xz -C /usr/local",
+        "export PATH=$PATH:/usr/local/go/bin",
+        "apt-get install -y libjpeg62-turbo-dev git cmake libusb-1.0-0-dev build-essential autoconf libfftw3-dev libncurses-dev libtool m4 automake",
+
+        "# Fetch source for Stratux",
+        "cd /tmp",
+        "git clone --recurse-submodules https://github.com/b3nn0/stratux.git",
+        "cd stratux",
+        "git checkout -b build-temp {{user `stratux_version`}}",
+        "cd ../",
+
+        "# Build osmocom version of librtlsdr",
+        "rm -Rf rtl-sdr",
+        "git clone https://github.com/osmocom/rtl-sdr.git",
+        "cd rtl-sdr",
+        "git checkout -b build-temp {{user `rtl_sdr_version`}}",
+        "mkdir build && cd build",
+        "cmake .. -DENABLE_ZEROCOPY=0",
+        "make -j8",
+        "make install",
+        "cd ../../",
+        "ldconfig",
+
+        "# Build kalibrate-rtl",
+        "rm -Rf kalibrate-rtl",
+        "git clone https://github.com/steve-m/kalibrate-rtl.git",
+        "cd kalibrate-rtl",
+        "git checkout -b build-temp {{user `kalibrate_rtl_version`}}",
+        "./bootstrap",
+        "./configure",
+        "make -j8",
+        "make install",
+        "cd ../",
+
+        "# Build WiringPi",
+        "git clone https://github.com/WiringPi/WiringPi.git",
+        "cd WiringPi",
+        "git checkout -b build-temp {{user `wiringpi_version`}}",
+        "./build",
+        "cd ../",
+
+        "# Build Stratux",
+        "cd stratux",
+        "make -j8",
+        "make install",
+        "cd ../",
+
+        "# Cleanup",
+        "apt-get purge -y --auto-remove libjpeg62-turbo-dev git cmake libusb-1.0-0-dev build-essential autoconf libfftw3-dev libncurses-dev libtool m4 automake",
+        "apt-get purge -y --auto-remove alsa-utils alsa-ucm-conf alsa-topology-conf bluez bluez-firmware cifs-utils cmake cmake-data v4l-utils rsync pigz pi-bluetooth perl cpp cpp-10",
+        "rm -Rf /usr/local/go",
+
+        "# Add configuration files from the Stratux project",
+        "cd image",
+
+        "# Message of the day",
+        "cp -f motd /etc/motd",
+
+        "# Network config",
+        "cp -f stratux-dnsmasq.conf /etc/dnsmasq.d/stratux-dnsmasq.conf",
+        "cp -f wpa_supplicant_ap.conf /etc/wpa_supplicant/wpa_supplicant_ap.conf",
+        "cp -f interfaces /etc/network/interfaces",
+
+        "# logrotate",
+        "cp -f logrotate.conf /etc/logrotate.conf",
+        "cp -f logrotate_d_stratux /etc/logrotate.d/stratux",
+
+        "# sshd",
+        "cp -f sshd_config /etc/ssh/sshd_config",
+
+        "# Aliases",
+        "cp -f stxAliases.txt /etc/profile.d/stratux_aliases.sh",
+
+        "# rtl-sdr",
+        "cp -f rtl-sdr-blacklist.conf /etc/modprobe.d/",
+
+        "# Modules for i2c",
+        "cp -f modules.txt /etc/modules"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get clean"
+      ]
+    }
+  ]
+}
