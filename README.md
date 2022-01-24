@@ -13,7 +13,7 @@ Note that this does not replace any primary systems and should only be used as a
 - 9-axis motion tracking, [TDK ICM-20948](https://invensense.tdk.com/products/motion-tracking/9-axis/icm-20948/)
 - GNSS (GPS, Galileo, GLONASS, BeiDou) with 2.5 m CEP accuracy, [u-blox CAM-M8Q](https://www.u-blox.com/en/product/cam-m8-series)
 - GNSS backup power for faster initial lock
-- Carbon monoxide detector with audible alarm [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
+- Carbon monoxide detector with audible alarm, [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
 - 18650 battery socket
 - 4.2 V overvoltage, 2.5 V undervoltage and over-current protection, [TI BQ2972](https://www.ti.com/product/BQ2972)
 - USB C power with built-in 1 A charger with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
@@ -33,8 +33,15 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 
 ## Contents of this repository
 
-- CAD and CAM files for the custom PCB
+- CAD and CAM files for the custom PCBs
 - CAD files for the enclosure
 - Source code for the EFM8 firmware
 - Source code for the monitoring and shutdown service for the Raspberry Pi
-- Packer build files and instructions on creating the Raspberry Pi image file
+- [Hashicorp Packer](https://www.packer.io/) build files and instructions on creating the Raspberry Pi image file
+
+## Design decisions
+
+Because of the global component shortage, many of the components are selected out of availability. This leads to a more expensive design with several difficult component footprints.
+Still, several of the components are impossible to acquire separatly and may need to be desoldered from various break-out and development kits.
+
+The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching which is located on a separate PCB.
