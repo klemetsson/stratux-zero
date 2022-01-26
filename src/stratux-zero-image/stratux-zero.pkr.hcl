@@ -43,6 +43,11 @@ build {
         "source.arm.raspios-arm64",
     ]
 
+    provisioner "file" {
+        content     = "{}"
+        destination = "/boot/stratux.conf"
+    }
+
     # Setup boot string and device tree
     provisioner "shell" {
         inline = [
@@ -273,8 +278,8 @@ build {
             "sed -i /etc/wpa_supplicant/wpa_supplicant_ap.conf -e \"s/\\\"stratux\\\"/\\\"${var.wifi_ap_ssid}\\\"/g\"",
 
             # Inject addresses to network configuration
-            "sed -i /etc/network/interfaces -e \"s/address.*$$/address ${cidrhost(var.network_cidr, var.network_host_number)}/g\"",
-            "sed -i /etc/network/interfaces -e \"s/netmask.*$$/netmask ${cidrnetmask(var.network_cidr)}/g\"",
+            "sed -i /etc/network/interfaces -e \"s/address.*$/address ${cidrhost(var.network_cidr, var.network_host_number)}/g\"",
+            "sed -i /etc/network/interfaces -e \"s/netmask.*$/netmask ${cidrnetmask(var.network_cidr)}/g\"",
 
             # logrotate
             "cp -f logrotate.conf /etc/logrotate.conf",
@@ -293,7 +298,7 @@ build {
             "cp -f modules.txt /etc/modules",
 
             # Update the Stratux configuration
-            "jq -s '.[0] * .[1]' /boot/stratux.conf <(echo '${jsonencode(merge(
+            "echo '${jsonencode(merge(
                 {
                     DeveloperMode = var.enable_developer_mode
                     WiFiIPAddress = cidrhost(var.network_cidr, var.network_host_number)
@@ -304,7 +309,10 @@ build {
                 var.gpio_fan_pin != null ? {
                     PWMPin = var.gpio_fan_pin
                 } : {}
-            ))}') > /boot/stratux.conf",
+            ))}' > /boot/stratux.conf.tmp",
+            "jq -Mn --argfile file1 boot/stratux.conf --argfile file2 /boot/stratux.conf.tmp '$file1 + $file2'  > /boot/stratux.conf.new",
+            "rm /boot/stratux.conf.tmp",
+            "mv -f /boot/stratux.conf.new /boot/stratux.conf",
         ]
     }
 
