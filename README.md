@@ -1,6 +1,6 @@
 # Stratux Zero
 
-Portable ADS-B/Flarm receiver, AHRS, GNSS and CO-alarm based on the Stratux project and Raspberry Pi Zero 2.
+Portable ADS-B/Flarm/OGN traffic receiver, AHRS, GNSS, pressure altitude and CO-alarm based on the Stratux project and a Raspberry Pi Zero 2.
 
 This project is based on the great work of:
 - [Stratux (cyoung/stratux)](https://github.com/cyoung/stratux)
@@ -19,7 +19,7 @@ Note that this does not replace any primary systems and should only be used as a
 - 9-axis motion tracking, [TDK ICM-20948](https://invensense.tdk.com/products/motion-tracking/9-axis/icm-20948/)
 - GNSS (GPS, Galileo, GLONASS, BeiDou) with 2.5 m CEP accuracy, [u-blox CAM-M8Q](https://www.u-blox.com/en/product/cam-m8-series)
 - GNSS backup power for faster initial lock
-- Carbon monoxide detector with audible alarm, [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
+- Carbon monoxide detector with 85 dB audible alarm, [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
 - 18650 battery socket
 - 4.2 V overvoltage, 2.5 V undervoltage and over-current protection, [TI BQ2972](https://www.ti.com/product/BQ2972)
 - USB C power with built-in 1 A charger with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
@@ -27,7 +27,7 @@ Note that this does not replace any primary systems and should only be used as a
 - Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
 - Raspberry Pi Zero 2 interface with pogo pins
-- Watchdog that resets the Raspberry Pi
+- Watchdog that resets the Raspberry Pi if it has stopped
 - Five LED indicators
     - Green power indicator that flashes if low battery
     - Green Stratux status indicator that flashes if starting up or shutting down
@@ -36,6 +36,14 @@ Note that this does not replace any primary systems and should only be used as a
     - Orange charge indicator that flashes while charging and turned on when fully charged
 
 The CO-alarm, watchdog, charging temperature monitoring, battery and power management is handled by an [Silicon Labs EFM8BB10 8051 MCU](https://www.silabs.com/mcu/8-bit-microcontrollers/efm8-busy-bee/device.efm8bb10f4g-qfn20).
+
+## TODO
+
+- Configure fancontrol service
+- Configure Wifi transmit power
+- Cleanup installation
+- Add LED disable service
+- Add HDMI disable service
 
 ## Contents of this repository
 
@@ -74,7 +82,7 @@ sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(l
 sudo apt-get update && sudo apt-get install packer
 ```
 
-**Install Go 1.17:**
+**Install Go if missing:**
 
 ```bash
 wget -c https://go.dev/dl/go1.17.6.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
@@ -96,11 +104,31 @@ rm -Rf packer-builder-arm
 
 ### Building the image
 
-The build is done using Hashicorp packer and a plugin for emulating the ARM architecture using QEMU.
+The build is done using [Hashicorp Packer](https://www.packer.io/) and [a plugin for emulating the ARM architecture using QEMU](https://github.com/mkaczanowski/packer-builder-arm).
 
 ```bash
-sudo packer build src/image/raspberry-pi-zero-2.json
+sudo packer build src/stratux-zero-image
 ```
 
-The build will take around 20 to 45 minutes and will result in a file named `"stratux-zero-arm64.img"`.
+The build will take around 20 to 45 minutes and will result in a file named `"stratux-zero-raspios-arm64.img"`.
 This file can be flashed to an SD card using [Etcher](https://www.balena.io/etcher/) or similar software.
+
+### Customizing
+
+The image can be customized by passing variables into the `packer build`.
+
+For example, to enable SSH access, run:
+
+```bash
+sudo packer build -var enable_ssh=true src/stratux-zero-image
+```
+
+Variables can also be passed as a configuration file or as environment variables.
+
+For a full list of variables and default values, see the [variables.pkr.hcl](src/stratux-zero-image/variables.pkr.hcl).
+
+## Building the EFM8 firmware
+
+The onboard 8051 microcontroller requires [Silicon Labs Simplicity Studio](https://www.silabs.com/developers/simplicity-studio) for compiling and flashing the firmware.
+
+To program the board you will need a [Silicon Labs USB Debug Adapter](https://www.silabs.com/development-tools/mcu/8-bit/8-bit-usb-debug-adapter) and a [TC2030-IDC 6-pin Tag-Connect cable](https://www.tag-connect.com/product/tc2030-idc-6-pin-tag-connect-plug-of-nails-spring-pin-cable-with-legs).

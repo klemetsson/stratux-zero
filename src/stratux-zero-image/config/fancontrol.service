@@ -1,0 +1,11 @@
+[Unit]
+Description=A dummy fancontrol service so the make install doesn't fail
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'echo "hello world"'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
