@@ -117,13 +117,19 @@ This file can be flashed to an SD card using [Etcher](https://www.balena.io/etch
 
 The image can be customized by passing variables into the `packer build`.
 
-For example, to enable SSH access, run:
+To enable SSH access, run:
 
 ```bash
 sudo packer build -var enable_ssh=true src/stratux-zero-image
 ```
 
-Variables can also be passed as a configuration file or as environment variables.
+To enable developer mode, run:
+
+```bash
+sudo packer build -var enable_developer_mode=true src/stratux-zero-image
+```
+
+The `-var` can be used multiple times and variables can also be passed as a configuration file or as environment variables.
 
 For a full list of variables and default values, see the [variables.pkr.hcl](src/stratux-zero-image/variables.pkr.hcl).
 
