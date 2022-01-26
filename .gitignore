@@ -2,4 +2,17 @@
 packer_cache/
 crash.log
 *.box
+
+# Artifacts
 *.img
+*.checksum
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
