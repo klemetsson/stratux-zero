@@ -295,6 +295,7 @@ build {
             # Update the Stratux configuration
             "jq -s '.[0] * .[1]' /boot/stratux.conf <(echo '${jsonencode(merge(
                 {
+                    DeveloperMode = var.enable_developer_mode
                     WiFiIPAddress = cidrhost(var.network_cidr, var.network_host_number)
                     WiFiSSID      = var.wifi_ap_ssid
                     DarkMode      = var.web_darkmode

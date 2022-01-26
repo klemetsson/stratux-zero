@@ -78,6 +78,12 @@ variable "enable_hdmi" {
     default     = true
 }
 
+variable "enable_developer_mode" {
+    description = "Put Stratux in developer mode."
+    type        = bool
+    default     = false
+}
+
 variable "gpio_shutdown_pin" {
     description = "The GPIO pin to use for signaling the Raspberry to shutdown. Set to `null` to disable this feature."
     type        = number
