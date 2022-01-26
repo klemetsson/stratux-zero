@@ -43,11 +43,6 @@ build {
         "source.arm.raspios-arm64",
     ]
 
-    provisioner "file" {
-        content     = "{}"
-        destination = "/boot/stratux.conf"
-    }
-
     # Setup boot string and device tree
     provisioner "shell" {
         inline = [
@@ -304,6 +299,13 @@ build {
                     WiFiIPAddress = cidrhost(var.network_cidr, var.network_host_number)
                     WiFiSSID      = var.wifi_ap_ssid
                     DarkMode      = var.web_darkmode
+                    GPS_Enabled   = var.enable_gnss
+                    UAT_Enabled   = var.enable_uat
+                    ES_Enabled    = var.enable_es
+                    OGN_Enabled   = var.enable_ogn
+                    AIS_Enabled   = var.enable_ais
+                    BMP_Enabled   = var.enable_bmp
+                    IMU_Enabled   = var.enable_imu
                 },
                 # fancontrol options
                 var.gpio_fan_pin != null ? {

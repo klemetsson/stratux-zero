@@ -84,6 +84,48 @@ variable "enable_developer_mode" {
     default     = false
 }
 
+variable "enable_gnss" {
+    description = "Enable GNSS (GPS, GLONASS, etc.)."
+    type        = bool
+    default     = true
+}
+
+variable "enable_uat" {
+    description = "Enable UAT radio."
+    type        = bool
+    default     = false
+}
+
+variable "enable_es" {
+    description = "Enable ES radio."
+    type        = bool
+    default     = true
+}
+
+variable "enable_ogn" {
+    description = "Enable OGN radio."
+    type        = bool
+    default     = true
+}
+
+variable "enable_ais" {
+    description = "Enable AIS radio."
+    type        = bool
+    default     = false
+}
+
+variable "enable_bmp" {
+    description = "Enable BMP pressure altimeter."
+    type        = bool
+    default     = true
+}
+
+variable "enable_imu" {
+    description = "Enable IMU sensor for AHRS."
+    type        = bool
+    default     = true
+}
+
 variable "gpio_shutdown_pin" {
     description = "The GPIO pin to use for signaling the Raspberry to shutdown. Set to `null` to disable this feature."
     type        = number
