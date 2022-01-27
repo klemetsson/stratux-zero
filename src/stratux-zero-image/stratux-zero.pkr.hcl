@@ -312,7 +312,7 @@ build {
                     PWMPin = var.gpio_fan_pin
                 } : {}
             ))}' > /boot/stratux.conf.tmp",
-            "jq -Mn --argfile file1 boot/stratux.conf --argfile file2 /boot/stratux.conf.tmp '$file1 + $file2'  > /boot/stratux.conf.new",
+            "jq -Mn --argfile file1 /boot/stratux.conf --argfile file2 /boot/stratux.conf.tmp '$file1 + $file2'  > /boot/stratux.conf.new",
             "rm /boot/stratux.conf.tmp",
             "mv -f /boot/stratux.conf.new /boot/stratux.conf",
         ]
