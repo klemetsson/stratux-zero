@@ -54,6 +54,12 @@ variable "web_darkmode" {
     default     = true
 }
 
+variable "hostname" {
+    description = "The hostname to use for the OS."
+    type        = string
+    default     = "stratux"
+}
+
 variable "network_cidr" {
     description = "The CIDR for the Wifi access point network."
     type        = string

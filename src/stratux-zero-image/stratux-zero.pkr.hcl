@@ -133,8 +133,8 @@ build {
             "/lib/console-setup/console-setup.sh",
 
             # Set hostname
-            "echo 'stratux' > /etc/hostname",
-            "sed -i /etc/hosts -e \"s/raspberrypi/stratux/g\"",
+            "echo '${var.hostname}' > /etc/hostname",
+            "sed -i /etc/hosts -e \"s/raspberrypi/${var.hostname}/g\"",
 
             # Set the keyboard layout to US.
             "sed -i /etc/default/keyboard -e \"/^XKBLAYOUT/s/\\\".*\\\"/\\\"us\\\"/\"",
