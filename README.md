@@ -44,6 +44,8 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 - Cleanup installation
 - Add LED disable service
 - Add HDMI disable service
+- Remove IPv6 from avahi
+- Write range of DHCP IPs
 
 ## Contents of this repository
 
@@ -59,6 +61,22 @@ Because of the global component shortage, many of the components are selected ou
 Still, several of the components are impossible to acquire separatly and may need to be desoldered from various break-out and development kits.
 
 The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching which is located on a separate PCB.
+
+### Power management
+
+There is a DC/DC regulator that takes power from the battery or external USB-C and outputs the main 5 V bus. This bus powers the Raspberry Pi through the GPIO and provides power to the two USB A connectors.
+
+From the 5 V, a 3.3 V and 1.8 V is created to power various circuitry.
+
+The 5 V regulator can be enabled from three sources.
+
+- The physical power switch will always keep the 5 V enabled.
+- When external power is provided on the USB-C. However, the EFM8 will keep the Raspberry Pi from starting using the RUN-pin if the physical power switch is in off.
+- The EFM8 can keep the 5 V on to allow the Raspberry Pi to power down cleanly.
+
+An additional 1.8 V is created from the battery to provide a backup power to the u-blox CAM-M8Q to allow for a faster startup and satellite lock.
+
+Multiple test points can be found on the backside of the PCB.
 
 ## Building the Stratux Zero image
 
