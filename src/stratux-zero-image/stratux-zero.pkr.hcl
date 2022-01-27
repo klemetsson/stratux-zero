@@ -142,6 +142,13 @@ build {
             # Run DHCP on eth0 when cable is plugged in
             "apt-get install -y ifplugd",
             "sed -i -e 's/INTERFACES=\"\"/INTERFACES=\"eth0\"/g' /etc/default/ifplugd",
+
+            # Setup Avahi
+            "systemctl enable avahi-daemon.service",
+            "sed -i /etc/avahi/avahi-daemon.conf -e 's/^use\\-ipv6=yes$/use\\-ipv6=no/g'",
+
+            # Setup SSH
+            "${var.enable_ssh == false ? "#" : ""}systemctl enable ssh.service",
         ]
     }
 
@@ -168,19 +175,7 @@ build {
     # Install build requirements
     provisioner "shell" {
         inline = [
-            "apt-get install -y ${join(" ", [
-                "libjpeg62-turbo-dev",
-                "git",
-                "cmake",
-                "libusb-1.0-0-dev",
-                "build-essential",
-                "autoconf",
-                "libfftw3-dev",
-                "libncurses-dev",
-                "libtool",
-                "m4",
-                "automake",
-            ])}",
+            "apt-get install -y ${join(" ", var.apt_build_packages)}",
             # Install Go
             "wget -nv -c https://go.dev/dl/go${var.go_version}.linux-arm64.tar.gz -O - | tar -xz -C /usr/local",
         ]
@@ -315,14 +310,20 @@ build {
             "jq -Mn --argfile file1 /boot/stratux.conf --argfile file2 /boot/stratux.conf.tmp '$file1 + $file2'  > /boot/stratux.conf.new",
             "rm /boot/stratux.conf.tmp",
             "mv -f /boot/stratux.conf.new /boot/stratux.conf",
+
+            # Enable fancontrol (first remove the dummy service)
+            "rm /etc/systemd/system/fancontrol.service",
+            "${var.gpio_fan_pin == null ? "#": ""}/opt/stratux/bin/fancontrol install",
         ]
     }
 
     # Cleanup installation
     provisioner "shell" {
         inline = [
-            "#apt-get purge -y --auto-remove libjpeg62-turbo-dev git cmake libusb-1.0-0-dev build-essential autoconf libfftw3-dev libncurses-dev libtool m4 automake",
-            "#apt-get purge -y --auto-remove alsa-utils alsa-ucm-conf alsa-topology-conf bluez bluez-firmware cifs-utils cmake cmake-data v4l-utils rsync pigz pi-bluetooth perl cpp cpp-10",
+            "apt-get purge -y ${join(" ", distinct(concat(
+                var.apt_build_packages,
+                #var.apt_remove_packages,
+            )))}",
             "rm -Rf /root/go",
             "rm -Rf /root/.cache",
             "rm -Rf /usr/local/go",

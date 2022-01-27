@@ -171,6 +171,7 @@ variable "apt_required_packages" {
         "dnsmasq",
         "i2c-tools",
         "python3-serial",
+        "python3-smbus",
         "jq",
         "ifplugd",
         "iptables",
@@ -178,6 +179,7 @@ variable "apt_required_packages" {
         "libjpeg62-turbo",
         "libfftw3-3",
         "libncurses6",
+        "avahi-daemon",
     ]
 }
 
@@ -185,4 +187,43 @@ variable "apt_extra_packages" {
     description = "A list of additional packages to install on the image."
     type        = list(string)
     default     = []
+}
+
+variable "apt_build_packages" {
+    description = "A list of packages needed for building Stratux."
+    type        = list(string)
+    default     = [
+        "libjpeg62-turbo-dev",
+        "git",
+        "cmake",
+        "cmake-data",
+        "libusb-1.0-0-dev",
+        "build-essential",
+        "autoconf",
+        "libfftw3-dev",
+        "libncurses-dev",
+        "libtool",
+        "m4",
+        "automake",
+    ]
+}
+
+variable "apt_remove_packages" {
+    description = "A list of packages to remove from the image in addition to `apt_build_packages`."
+    type        = list(string)
+    default     = [
+        "alsa-utils",
+        "alsa-ucm-conf",
+        "alsa-topology-conf",
+        "bluez",
+        "bluez-firmware",
+        "cifs-utils",
+        "v4l-utils",
+        "rsync",
+        "pigz",
+        "pi-bluetooth",
+        "perl",
+        "cpp",
+        "cpp-10",
+    ]
 }

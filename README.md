@@ -39,13 +39,13 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 
 ## TODO
 
-- Configure fancontrol service
 - Configure Wifi transmit power
-- Cleanup installation
 - Add LED disable service
 - Add HDMI disable service
-- Remove IPv6 from avahi
 - Write range of DHCP IPs
+- See if we should modify the Stratux configuration templates also
+- Cleanup of packages
+- Open firewall to Stratux ports
 
 ## Contents of this repository
 
