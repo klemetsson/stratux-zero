@@ -52,7 +52,7 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 - CAD and CAM files for the custom PCBs
 - CAD files for the enclosure
 - Source code for the EFM8 firmware
-- Source code for the monitoring and shutdown service for the Raspberry Pi
+- Source code for the [monitoring](src/gpio-status) and [shutdown](src/gpio-shutdown) service for the Raspberry Pi
 - [Hashicorp Packer](https://www.packer.io/) build files and instructions on creating the Raspberry Pi image file
 
 ## Design decisions
