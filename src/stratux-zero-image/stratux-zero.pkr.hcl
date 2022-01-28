@@ -72,17 +72,6 @@ build {
         destination = "/boot/config.txt"
     }
 
-    # Massage of the day
-    provisioner "file" {
-        content = templatefile(
-            "config/motd.pkrtpl.hcl",
-            {
-                build = formatdate("EEEE, DD-MMM-YY hh:mm:ss ZZZ", timestamp())
-            }
-        )
-        destination = "/etc/motd"
-    }
-
     # Filter out all the documentation from installed packages
     provisioner "file" {
         source      = "${path.root}/config/01_nodoc"
@@ -170,6 +159,87 @@ build {
             }
         )
         destination = "/etc/iptables/rules.v6"
+    }
+
+    # Massage of the day
+    provisioner "file" {
+        content = templatefile(
+            "config/motd.pkrtpl.hcl",
+            {
+                build = formatdate("EEEE, DD-MMM-YY hh:mm:ss ZZZ", timestamp())
+            }
+        )
+        destination = "/etc/motd"
+    }
+
+    # Boot configuration script
+    provisioner "file" {
+        content = templatefile(
+            "config/boot_config.sh.pkrtpl.hcl",
+            {
+                disable_leds   = var.rpi_disable_leds
+                enable_hdmi    = var.enable_hdmi
+            }
+        )
+        destination = "/usr/local/bin/boot_config.sh"
+    }
+    provisioner "file" {
+        source      = "${path.root}/config/boot_config.service"
+        destination = "/etc/systemd/system/boot_config.service"
+    }
+    provisioner "shell" {
+        inline = [
+            "chmod +x /usr/local/bin/boot_config.sh",
+            "systemctl enable boot_config.service",
+        ]
+    }
+
+    # GPIO status services
+    provisioner "file" {
+        source      = "${path.cwd}/src/gpio-status/gpio-status.py"
+        destination = "/usr/local/bin/gpio-status"
+    }
+    provisioner "file" {
+        content = templatefile(
+            "config/gpio-status.service.pkrtpl.hcl",
+            {
+                gpio_pin = var.gpio_status_pin == null ? 18 : var.gpio_status_pin
+            }
+        )
+        destination = "/etc/systemd/system/gpio-status.service"
+    }
+    provisioner "shell" {
+        inline = [
+            "chmod +x /usr/local/bin/gpio-status",
+            "${var.gpio_status_pin == null ? "#" : ""}systemctl enable gpio-status.service",
+        ]
+    }
+
+    # GPIO shutdown services
+    provisioner "file" {
+        source      = "${path.cwd}/src/gpio-shutdown/gpio-shutdown.py"
+        destination = "/usr/local/bin/gpio-shutdown"
+    }
+    provisioner "file" {
+        content = templatefile(
+            "config/gpio-shutdown.service.pkrtpl.hcl",
+            {
+                gpio_pin = var.gpio_shutdown_pin == null ? 17 : var.gpio_shutdown_pin
+            }
+        )
+        destination = "/etc/systemd/system/gpio-shutdown.service"
+    }
+    provisioner "shell" {
+        inline = [
+            "chmod +x /usr/local/bin/gpio-shutdown",
+            "${var.gpio_shutdown_pin == null ? "#" : ""}systemctl enable gpio-shutdown.service",
+        ]
+    }
+
+    # Disable ALSA audio support
+    provisioner "file" {
+        content     = "blacklist snd_bcm2835"
+        destination = "/etc/modprobe.d/blacklist_alsa.conf"
     }
 
     # Install build requirements
@@ -281,12 +351,7 @@ build {
             # Network config
             "cp -f stratux-dnsmasq.conf /etc/dnsmasq.d/stratux-dnsmasq.conf",
             "cp -f wpa_supplicant_ap.conf /etc/wpa_supplicant/wpa_supplicant_ap.conf",
-            "cp -f interfaces /etc/network/interfaces",
             "sed -i /etc/wpa_supplicant/wpa_supplicant_ap.conf -e \"s/\\\"stratux\\\"/\\\"${var.wifi_ap_ssid}\\\"/g\"",
-
-            # Inject addresses to network configuration
-            "sed -i /etc/network/interfaces -e \"s/address.*$/address ${cidrhost(var.network_cidr, var.network_host_number)}/g\"",
-            "sed -i /etc/network/interfaces -e \"s/netmask.*$/netmask ${cidrnetmask(var.network_cidr)}/g\"",
 
             # logrotate
             "cp -f logrotate.conf /etc/logrotate.conf",
@@ -305,7 +370,7 @@ build {
             "cp -f modules.txt /etc/modules",
 
             # Update the Stratux configuration
-            "echo '${jsonencode(merge(
+            "echo '${jsonencode(
                 {
                     DeveloperMode = var.enable_developer_mode
                     WiFiIPAddress = cidrhost(var.network_cidr, var.network_host_number)
@@ -318,18 +383,17 @@ build {
                     AIS_Enabled   = var.enable_ais
                     BMP_Enabled   = var.enable_bmp
                     IMU_Enabled   = var.enable_imu
-                },
-                # fancontrol options
-                var.gpio_fan_pin != null ? {
-                    PWMPin = var.gpio_fan_pin
-                } : {}
-            ))}' > /boot/stratux.conf.tmp",
+                    # fancontrol options
+                    PWMPin = var.gpio_fan_pin != null ? var.gpio_fan_pin : 4
+                }
+            )}' > /boot/stratux.conf.tmp",
             "jq -Mn --argfile file1 /boot/stratux.conf --argfile file2 /boot/stratux.conf.tmp '$file1 + $file2'  > /boot/stratux.conf.new",
             "rm /boot/stratux.conf.tmp",
             "mv -f /boot/stratux.conf.new /boot/stratux.conf",
 
-            # Enable fancontrol (first remove the dummy service)
+            # Enable fancontrol (first remove the dummy service and the rc.d)
             "rm /etc/systemd/system/fancontrol.service",
+            "update-rc.d fancontrol disable",
             "${var.gpio_fan_pin == null ? "#": ""}/opt/stratux/bin/fancontrol install",
         ]
     }
@@ -339,12 +403,13 @@ build {
         inline = [
             "apt-get purge -y ${join(" ", distinct(concat(
                 var.apt_build_packages,
-                #var.apt_remove_packages,
+                var.apt_remove_packages,
             )))}",
+            "apt-get autoremove -y",
+            "apt-get clean",
             "rm -Rf /root/go",
             "rm -Rf /root/.cache",
             "rm -Rf /usr/local/go",
-            "apt-get clean",
         ]
     }
 

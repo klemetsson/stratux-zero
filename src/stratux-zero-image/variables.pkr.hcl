@@ -220,9 +220,6 @@ variable "apt_remove_packages" {
     description = "A list of packages to remove from the image in addition to `apt_build_packages`."
     type        = list(string)
     default     = [
-        "alsa-utils",
-        "alsa-ucm-conf",
-        "alsa-topology-conf",
         "bluez",
         "bluez-firmware",
         "cifs-utils",

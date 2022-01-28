@@ -39,13 +39,10 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 
 ## TODO
 
-- Configure Wifi transmit power
-- Add LED disable service
-- Add HDMI disable service
 - Write range of DHCP IPs
 - See if we should modify the Stratux configuration templates also
-- Cleanup of packages
 - Open firewall to Stratux ports
+- Allow username/password for the default user to be changed
 
 ## Contents of this repository
 

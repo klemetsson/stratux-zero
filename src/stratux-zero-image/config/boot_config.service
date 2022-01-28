@@ -1,0 +1,11 @@
+[Unit]
+Description=Setup Raspberry Pi hardware on boot
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/boot_config.sh
+
+[Install]
+WantedBy=multi-user.target
