@@ -7,7 +7,7 @@ variable "raspios_version" {
 }
 
 variable "raspios_upgrade" {
-    description = "Perform an `apt-get upgrade`."
+    description = "Upgrade packages in the Raspberry Pi OS image."
     type        = bool
     default     = true
 }
