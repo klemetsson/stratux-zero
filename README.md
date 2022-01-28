@@ -2,6 +2,8 @@
 
 Portable ADS-B/Flarm/OGN traffic receiver, AHRS, GNSS, pressure altitude and CO-alarm based on the Stratux project and a Raspberry Pi Zero 2.
 
+The Flarm/OGN can be reconfigured for 978 MHz UAT for non-European use.
+
 This project is based on the great work of:
 - [Stratux (cyoung/stratux)](https://github.com/cyoung/stratux)
 - [Stratux - European edition (b3nn0/stratux)](https://github.com/b3nn0/stratux)
@@ -22,12 +24,13 @@ Note that this does not replace any primary systems and should only be used as a
 - Carbon monoxide detector with 85 dB audible alarm, [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
 - 18650 battery socket
 - 4.2 V overvoltage, 2.5 V undervoltage and over-current protection, [TI BQ2972](https://www.ti.com/product/BQ2972)
-- USB C power with built-in 1 A charger with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
+- USB C power with built-in 1 A charger (can be set up to 3.15 A with a resistor change), with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
 - High temperature and low temperature charge monitoring
 - Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
-- Raspberry Pi Zero 2 interface with pogo pins
+- Optimized fo a Raspberry Pi Zero 2
 - Watchdog that resets the Raspberry Pi if it has stopped
+- Starts in about 11 seconds
 - Five LED indicators
     - Green power indicator that flashes if low battery
     - Green Stratux status indicator that flashes if starting up or shutting down
