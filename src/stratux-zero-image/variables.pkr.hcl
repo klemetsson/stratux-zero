@@ -162,6 +162,12 @@ variable "rpi_disable_leds" {
     default     = true
 }
 
+variable "wifi_tx_power_limit" {
+    description = "Reduce the range of the Wifi by limiting the transmit power. Entered in mBm, i.e. 100 means 1.00 dBm. Set to `null` for default power."
+    type        = number
+    default     = 200
+}
+
 variable "apt_required_packages" {
     description = "A list of packages to install on the image."
     type        = list(string)
@@ -172,6 +178,7 @@ variable "apt_required_packages" {
         "i2c-tools",
         "python3-serial",
         "python3-smbus",
+        "python3-requests",
         "jq",
         "ifplugd",
         "iptables",
@@ -180,6 +187,7 @@ variable "apt_required_packages" {
         "libfftw3-3",
         "libncurses6",
         "avahi-daemon",
+        "rpi.gpio",
     ]
 }
 

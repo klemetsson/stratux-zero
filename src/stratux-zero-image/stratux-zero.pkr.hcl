@@ -256,6 +256,23 @@ build {
         ]
     }
 
+    # Setup network configuration
+    provisioner "file" {
+        content = templatefile(
+            "config/interfaces.pkrtpl.hcl",
+            {
+                ip = {
+                    address = cidrhost(var.network_cidr, var.network_host_number)
+                    netmask = cidrnetmask(var.network_cidr)
+                }
+                wifi = {
+                    tx_power_limit = var.wifi_tx_power_limit
+                }
+            }
+        )
+        destination = "/etc/network/interfaces"
+    }
+
     # Setup configuration files from Stratux project
     provisioner "shell" {
         inline = [
