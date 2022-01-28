@@ -67,7 +67,7 @@ variable "hostname" {
 }
 
 variable "network_cidr" {
-    description = "The CIDR for the Wifi access point network."
+    description = "The CIDR for the Wifi access point network. Must be a /24 network."
     type        = string
     default     = "192.168.10.0/24"
 }
@@ -103,25 +103,25 @@ variable "enable_gnss" {
 }
 
 variable "enable_uat" {
-    description = "Enable UAT radio."
+    description = "Enable 978 MHz UAT radio."
     type        = bool
     default     = false
 }
 
 variable "enable_es" {
-    description = "Enable ES radio."
+    description = "Enable 1090 MHz ADS-B ES radio."
     type        = bool
     default     = true
 }
 
 variable "enable_ogn" {
-    description = "Enable OGN radio."
+    description = "Enable 868 MHz OGN radio."
     type        = bool
     default     = true
 }
 
 variable "enable_ais" {
-    description = "Enable AIS radio."
+    description = "Enable 162 MHz AIS radio."
     type        = bool
     default     = false
 }
@@ -151,7 +151,7 @@ variable "gpio_status_pin" {
 }
 
 variable "gpio_fan_pin" {
-    description = "The GPIO pin to use for fancontrol. Set to `null` to disable this feature."
+    description = "The GPIO pin to use for fancontrol. Set to `null` to disable this feature. Note that this setting is currently overwritten by the Stratux web app forcing it to default to 18."
     type        = number
     default     = null
 }
