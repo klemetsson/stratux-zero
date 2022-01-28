@@ -6,6 +6,12 @@ variable "raspios_version" {
     default     = "2021-11-08/2021-10-30"
 }
 
+variable "raspios_upgrade" {
+    description = "Perform an `apt-get upgrade`."
+    type        = bool
+    default     = true
+}
+
 variable "go_version" {
     description = "Version of Go to use for building Stratux."
     type        = string
@@ -200,7 +206,7 @@ variable "apt_extra_packages" {
 variable "apt_build_packages" {
     description = "A list of packages needed for building Stratux."
     type        = list(string)
-    default     = [
+    default = [
         "libjpeg62-turbo-dev",
         "git",
         "cmake",
@@ -219,7 +225,7 @@ variable "apt_build_packages" {
 variable "apt_remove_packages" {
     description = "A list of packages to remove from the image in addition to `apt_build_packages`."
     type        = list(string)
-    default     = [
+    default = [
         "bluez",
         "bluez-firmware",
         "cifs-utils",

@@ -43,14 +43,41 @@ build {
         "source.arm.raspios-arm64",
     ]
 
+    # Filter out all the documentation from installed packages
+    provisioner "file" {
+        source      = "${path.root}/config/01_nodoc"
+        destination = "/etc/dpkg/dpkg.cfg.d/01_nodoc"
+    }
+
+    # Refresh and upgrade packages
+    provisioner "shell" {
+        inline = [
+            "apt-get update",
+            "${var.raspios_upgrade == false ? "#" : ""}apt-get upgrade -y",
+        ]
+    }
+
+    # Install required packages
+    provisioner "shell" {
+        inline = [
+            "echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections",
+            "echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections",
+            "apt-get install -y ${join(" ", distinct(concat(
+                var.apt_required_packages,
+                var.apt_extra_packages,
+            )))}",
+        ]
+    }
+
     # Setup boot string and device tree
     provisioner "shell" {
         inline = [
             # Disable serial console, disable rfkill state restore, enable wifi on boot
             "sed -i /boot/cmdline.txt -e \"s/console=serial0,[0-9]\\+ /systemd.restore_state=0 rfkill.default_state=1 /\"",
+
             # Add the workaround device tree support for the Zero 2
             # https://waldorf.waveform.org.uk/2021/the-pi-zero-2.html
-            "cp /boot/bcm2710-rpi-3-b.dtb /boot/bcm2710-rpi-zero-2.dtb",
+            "cp -n /boot/bcm2710-rpi-3-b.dtb /boot/bcm2710-rpi-zero-2.dtb",
         ]
     }
 
@@ -70,25 +97,6 @@ build {
             }
         )
         destination = "/boot/config.txt"
-    }
-
-    # Filter out all the documentation from installed packages
-    provisioner "file" {
-        source      = "${path.root}/config/01_nodoc"
-        destination = "/etc/dpkg/dpkg.cfg.d/01_nodoc"
-    }
-
-    # Install required packages
-    provisioner "shell" {
-        inline = [
-            "apt-get update",
-            "echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections",
-            "echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections",
-            "apt-get install -y ${join(" ", distinct(concat(
-                var.apt_required_packages,
-                var.apt_extra_packages,
-            )))}",
-        ]
     }
 
     # Setup system configuration
