@@ -88,6 +88,7 @@ build {
             "usermod -l ${var.raspios_username} pi",
             "usermod -m -d /home/${var.raspios_username} ${var.raspios_username}",
             "groupmod -n ${var.raspios_username} pi",
+            "sed -i /etc/sudoers.d/010_pi-nopasswd -e 's/^pi/${var.raspios_username}/g'",
         ]
     }
 
