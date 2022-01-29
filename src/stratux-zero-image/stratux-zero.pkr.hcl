@@ -372,7 +372,7 @@ build {
         destination = "/etc/network/interfaces"
     }
     provisioner "file" {
-        content = templatefile(
+        content = replace(templatefile(
             "config/interfaces.template.pkrtpl.hcl",
             {
                 ip = {
@@ -382,8 +382,14 @@ build {
                     tx_power_limit = var.wifi_tx_power_limit
                 }
             }
-        )
+        ), "{{", "\\{\\{") # Workaround for the {{ escape issue in Packer
         destination = "/opt/stratux/cfg/interfaces.template"
+    }
+    provisioner "shell" {
+        inline = [
+            # Workaround for the {{ escape issue in Packer
+            "sed -i /opt/stratux/cfg/interfaces.template -e 's/\\\\{/{/g'",
+        ]
     }
 
     # Setup configuration files from Stratux project
