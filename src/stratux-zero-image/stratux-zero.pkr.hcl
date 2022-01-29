@@ -462,8 +462,26 @@ build {
         ]
     }
 
+    # Create a JSON containing the build artifacts
+    post-processor "shell-local" {
+        inline = [
+            "rm -f packer-manifest.json",
+        ]
+    }
+    post-processor "manifest" {
+        output     = "packer-manifest.json"
+        strip_path = true
+    }
+
+    # Shrink the finished images if the PiShrink submodule has been pulled
+    post-processor "shell-local" {
+        inline = [
+            "[ -f tools/PiShrink/pishrink.sh ] && jq \".builds[].files[].name\" packer-manifest.json | tr '\\n' '\\0' | xargs -0 -n1 -I {} tools/PiShrink/pishrink.sh -s {} || true",
+        ]
+    }
+
     post-processor "checksum" {
-        checksum_types = [ "sha256", "sha512" ]
+        checksum_types = [ "sha256" ]
         output = "stratux-zero-{{.BuildName}}.{{.ChecksumType}}.checksum"
     }
 }

@@ -2,6 +2,7 @@
 packer_cache/
 crash.log
 *.box
+packer-manifest.json
 
 # Artifacts
 *.img

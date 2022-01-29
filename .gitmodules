@@ -1,0 +1,3 @@
+[submodule "tools/PiShrink"]
+	path = tools/PiShrink
+	url = https://github.com/Drewsif/PiShrink.git

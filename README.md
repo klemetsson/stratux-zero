@@ -92,7 +92,7 @@ Install all required components for compiling and building the Raspberry Pi Zero
 **Install required packages:**
 
 ```bash
-sudo apt-get install git unzip qemu-user-static e2fsprogs dosfstools libarchive-tools
+sudo apt-get install git unzip qemu-user-static e2fsprogs dosfstools libarchive-tools jq
 ```
 
 **Install Packer:**
