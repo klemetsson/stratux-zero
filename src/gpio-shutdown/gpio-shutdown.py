@@ -20,7 +20,7 @@ def _main(gpio):
     GPIO.setup(gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.add_event_detect(
         gpio, GPIO.RISING,
-        callback=lambda: os.system('shutdown -h now'),
+        callback=lambda _e: os.system('shutdown -h now'),
         bouncetime=100
     )
 
