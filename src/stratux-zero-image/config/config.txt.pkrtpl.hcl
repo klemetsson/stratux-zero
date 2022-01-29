@@ -17,6 +17,13 @@ dtparam=i2c_arm_baudrate=400000
 # Disable Bluetooth
 dtoverlay=disable-bt
 
+# Disable audio
+dtparam=audio=off
+
+# Disable camera and display detect
+camera_auto_detect=0
+display_auto_detect=0
+
 # Setup GPIO
 ${gpio.shutdown_pin == null ? "#" : ""}gpio=${gpio.shutdown_pin}=ip,pu
 ${gpio.status_pin == null ? "#" : ""}gpio=${gpio.status_pin}=op,dl
