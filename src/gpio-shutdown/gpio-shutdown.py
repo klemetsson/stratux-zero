@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A service that listens to a GPIO and triggers a shutdown on raising flank."""
+"""A service that listens to a GPIO and triggers a shutdown on falling flank."""
 
 import os
 import sys
@@ -17,9 +17,9 @@ def _main(gpio):
     # Setup the shutdown GPIO pin
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.add_event_detect(
-        gpio, GPIO.RISING,
+        gpio, GPIO.FALLING,
         callback=lambda _e: os.system('shutdown -h now'),
         bouncetime=100
     )

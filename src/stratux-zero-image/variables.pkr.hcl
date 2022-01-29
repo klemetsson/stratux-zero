@@ -157,7 +157,7 @@ variable "enable_imu" {
 }
 
 variable "gpio_shutdown_pin" {
-    description = "The GPIO pin to use for signaling the Raspberry to shutdown. Set to `null` to disable this feature."
+    description = "The GPIO pin to use for signaling the Raspberry to shutdown. Connect this pin to ground to trigger a shutdown. Set to `null` to disable this feature."
     type        = number
     default     = 17
 }
