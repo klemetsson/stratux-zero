@@ -34,7 +34,7 @@ Note that this does not replace any primary systems and should only be used as a
 - Five LED indicators
     - Green power indicator that flashes if low battery
     - Green Stratux status indicator that flashes if starting up or shutting down
-    - Red Carbon monoxide alert that flashes every 5 seconds if detected
+    - Red carbon monoxide alert that flashes every 5 seconds if detected
     - Green external power indicator
     - Orange charge indicator that flashes while charging and turned on when fully charged
 
@@ -66,6 +66,8 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
 - Add pin header for a fan that can be controlled from GPIO4.
 
 ### Power management
+
+![Power management diagram](docs/images/stratux-zero-power-management.png)
 
 There is a DC/DC regulator that takes power from the battery or external USB-C and outputs the main 5 V bus. This bus powers the Raspberry Pi through the GPIO and provides power to the two USB A connectors.
 
