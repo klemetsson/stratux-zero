@@ -139,6 +139,7 @@ build {
             "systemctl disable raspberrypi-net-mods.service",
             "systemctl disable console-setup.service",
             "systemctl disable raspi-config.service",
+            "systemctl disable systemd-timesyncd.service",
             "systemctl disable apt-daily.timer",
             "systemctl disable apt-daily-upgrade.timer",
             "systemctl disable man-db.timer",
