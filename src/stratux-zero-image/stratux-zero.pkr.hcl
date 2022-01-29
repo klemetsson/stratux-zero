@@ -413,6 +413,7 @@ build {
 
             # Aliases
             "cp -f stxAliases.txt /etc/profile.d/stratux_aliases.sh",
+            "sed -i /etc/profile.d/stratux_aliases.sh -e 's/function _stxhelp()/_stxhelp()/g'",
 
             # rtl-sdr
             "cp -f rtl-sdr-blacklist.conf /etc/modprobe.d/",
