@@ -62,6 +62,15 @@ Still, several of the components are impossible to acquire separatly and may nee
 
 The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching which is located on a separate PCB.
 
+### Ideas for improvements
+
+- Add a USB power delivery switch to the external ports so that they can
+  be switched off when the unit it charging while Raspberry Pi is not started.
+- Add a third power switch position that would start the unit whenever there is
+  external power. Good for when having the unit installed in the aircraft.
+  This can be done by implementing a voltage divider that can be sampled by the MCU.
+- Add pin header for a fan that can be controlled from GPIO4.
+
 ### Power management
 
 There is a DC/DC regulator that takes power from the battery or external USB-C and outputs the main 5 V bus. This bus powers the Raspberry Pi through the GPIO and provides power to the two USB A connectors.
