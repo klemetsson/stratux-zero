@@ -2,9 +2,9 @@
 
 source "arm" "raspios-arm64" {
     file_urls = [
-        "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-${var.raspios_version}-raspios-bullseye-arm64-lite.zip",
+        "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-${var.raspios_release}-raspios-${var.raspios_version}-arm64-lite.zip",
     ]
-    file_checksum_url     = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-${var.raspios_version}-raspios-bullseye-arm64-lite.zip.sha256"
+    file_checksum_url     = "https://downloads.raspberrypi.org/raspios_lite_arm64/images/raspios_lite_arm64-${var.raspios_release}-raspios-${var.raspios_version}-arm64-lite.zip.sha256"
     file_checksum_type    = "sha256"
     file_target_extension = "zip"
 

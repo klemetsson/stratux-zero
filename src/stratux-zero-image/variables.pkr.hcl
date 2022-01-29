@@ -3,7 +3,13 @@
 variable "raspios_version" {
     description = "Version of the Raspberry Pi OS base image to use."
     type        = string
-    default     = "2021-11-08/2021-10-30"
+    default     = "bullseye"
+}
+
+variable "raspios_release" {
+    description = "Release of the Raspberry Pi OS base image to use. See https://downloads.raspberrypi.org/raspios_lite_arm64/images/ for the latest."
+    type        = string
+    default     = "2022-01-28/2022-01-28"
 }
 
 variable "raspios_upgrade" {
