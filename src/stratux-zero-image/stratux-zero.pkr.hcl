@@ -141,6 +141,8 @@ build {
             "systemctl disable console-setup.service",
             "systemctl disable raspi-config.service",
             "systemctl disable systemd-timesyncd.service",
+            "systemctl disable nfs-config.service",
+            "systemctl disable udisks2.service",
             "systemctl disable apt-daily.timer",
             "systemctl disable apt-daily-upgrade.timer",
             "systemctl disable man-db.timer",
@@ -476,7 +478,7 @@ build {
     # Shrink the finished images if the PiShrink submodule has been pulled
     post-processor "shell-local" {
         inline = [
-            "[ -f tools/PiShrink/pishrink.sh ] && jq \".builds[].files[].name\" packer-manifest.json | tr '\\n' '\\0' | xargs -0 -n1 -I {} tools/PiShrink/pishrink.sh -s {} || true",
+            "[ -f ${path.cwd}/tools/PiShrink/pishrink.sh ] && jq \".builds[].files[].name\" packer-manifest.json | tr '\\n' '\\0' | tr -d '\"' | xargs -0 -n1 -I {} ${path.cwd}/tools/PiShrink/pishrink.sh -s \"${path.cwd}/{}\" || true",
         ]
     }
 

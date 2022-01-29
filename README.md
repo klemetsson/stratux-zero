@@ -89,6 +89,8 @@ These instructions are written for a AMD64 Ubuntu Linux environment and can be r
 
 Install all required components for compiling and building the Raspberry Pi Zero 2 disk image.
 
+Pulling the optional [Drewsif/PiShrink](https://github.com/Drewsif/PiShrink) submodule allows the finished image to be shrunk, making the flashing faster.
+
 **Install required packages:**
 
 ```bash
