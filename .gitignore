@@ -17,3 +17,21 @@ packer-manifest.json
 !.vscode/*.code-snippets
 .history/
 *.vsix
+
+# Sublime
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+GitHub.sublime-settings
+
+# System
+*Zone.Identifier
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+$RECYCLE.BIN/
+._*
+.DS_Store
+.AppleDouble
+.LSOverride
