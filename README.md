@@ -40,10 +40,6 @@ Note that this does not replace any primary systems and should only be used as a
 
 The CO-alarm, watchdog, charging temperature monitoring, battery and power management is handled by an [Silicon Labs EFM8BB10 8051 MCU](https://www.silabs.com/mcu/8-bit-microcontrollers/efm8-busy-bee/device.efm8bb10f4g-qfn20).
 
-## TODO
-
-- Allow username/password for the default user to be changed
-
 ## Contents of this repository
 
 - CAD and CAM files for the custom PCBs
@@ -147,6 +143,8 @@ To enable SSH access, run:
 ```bash
 sudo packer build -var enable_ssh=true src/stratux-zero-image
 ```
+
+> If you plan on enabling SSH, it is also a good idea to change `raspios_username` and `raspios_password`.
 
 To enable developer mode, run:
 

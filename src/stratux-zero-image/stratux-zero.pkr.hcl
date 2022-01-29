@@ -81,6 +81,24 @@ build {
         ]
     }
 
+    # Change default username
+    provisioner "shell" {
+        inline = [
+            "${var.raspios_username != "pi" ? "#" : ""}exit 0",
+            "usermod -l ${var.raspios_username} pi",
+            "usermod -m -d /home/${var.raspios_username} ${var.raspios_username}",
+            "groupmod -n ${var.raspios_username} pi",
+        ]
+    }
+
+    # Change default password
+    provisioner "shell" {
+        inline = [
+            "${var.raspios_password != "raspberry" ? "#" : ""}exit 0",
+            "echo \"${replace(replace(var.raspios_password, "\\", "\\\\"), "\"", "\\\"")}\\n${replace(replace(var.raspios_password, "\\", "\\\\"), "\"", "\\\"")}\" | passwd ${var.raspios_username}",
+        ]
+    }
+
     # Create a Raspberry boot configuration
     provisioner "file" {
         content = templatefile(

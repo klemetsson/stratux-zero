@@ -18,6 +18,18 @@ variable "raspios_upgrade" {
     default     = true
 }
 
+variable "raspios_username" {
+    description = "The username of the default system user."
+    type        = string
+    default     = "pi"
+}
+
+variable "raspios_password" {
+    description = "The password of the default system user."
+    type        = string
+    default     = "raspberry"
+}
+
 variable "go_version" {
     description = "Version of Go to use for building Stratux."
     type        = string
