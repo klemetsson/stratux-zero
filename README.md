@@ -42,9 +42,6 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 
 ## TODO
 
-- Write range of DHCP IPs
-- See if we should modify the Stratux configuration templates also
-- Open firewall to Stratux ports
 - Allow username/password for the default user to be changed
 
 ## Contents of this repository
@@ -66,6 +63,7 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
 
 - Add a USB power delivery switch to the external ports so that they can
   be switched off when the unit it charging while Raspberry Pi is not started.
+  For example, using a [TI TPS2001D](https://www.ti.com/product/TPS2001D).
 - Add a third power switch position that would start the unit whenever there is
   external power. Good for when having the unit installed in the aircraft.
   This can be done by implementing a voltage divider that can be sampled by the MCU.

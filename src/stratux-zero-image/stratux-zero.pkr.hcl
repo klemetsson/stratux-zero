@@ -351,6 +351,20 @@ build {
         )
         destination = "/etc/network/interfaces"
     }
+    provisioner "file" {
+        content = templatefile(
+            "config/interfaces.template.pkrtpl.hcl",
+            {
+                ip = {
+                    netmask = cidrnetmask(var.network_cidr)
+                }
+                wifi = {
+                    tx_power_limit = var.wifi_tx_power_limit
+                }
+            }
+        )
+        destination = "/opt/stratux/cfg/interfaces.template"
+    }
 
     # Setup configuration files from Stratux project
     provisioner "shell" {

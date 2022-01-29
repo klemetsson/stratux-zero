@@ -73,7 +73,7 @@ variable "hostname" {
 }
 
 variable "network_cidr" {
-    description = "The CIDR for the Wifi access point network. Must be a /24 network."
+    description = "The CIDR for the Wifi access point network. Must be a /24 network and using anything other than `\"192.168.10.0/24\"` may cause issues with dnsmasq."
     type        = string
     default     = "192.168.10.0/24"
 }
