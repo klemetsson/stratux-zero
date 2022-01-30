@@ -8,9 +8,14 @@ This project is based on the great work of:
 - [Stratux (cyoung/stratux)](https://github.com/cyoung/stratux)
 - [Stratux - European edition (b3nn0/stratux)](https://github.com/b3nn0/stratux)
 
+The Stratux software for this project is mostly untouched. The main addition is
+a more user friendly build system with lots configuration and customization
+options. It also has the firewall enabled and does more cleanup and tweaking to
+enable faster boot time and lower power consumption.
+
 Read more about the Stratux project at [stratux.me](http://stratux.me/) and at [dross:aviation](https://dross.net/aviation/).
 
-Note that this does not replace any primary systems and should only be used as a complement for increased safety and situational awareness.
+Note that this **does not** replace any primary systems and should only be used as a complement for increased safety and situational awareness.
 
 > THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
@@ -28,7 +33,7 @@ Note that this does not replace any primary systems and should only be used as a
 - High temperature and low temperature charge monitoring
 - Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
-- Optimized fo a Raspberry Pi Zero 2
+- Optimized for a Raspberry Pi Zero 2
 - Watchdog that resets the Raspberry Pi if it has stopped
 - Starts in about 11 seconds
 - Five LED indicators
@@ -69,17 +74,17 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
 
 ![Power management diagram](docs/images/stratux-zero-power-management.png)
 
-There is a DC/DC regulator that takes power from the battery or external USB-C and outputs the main 5 V bus. This bus powers the Raspberry Pi through the GPIO and provides power to the two USB A connectors.
+There is a DC/DC regulator that takes power from the battery or external USB-C and outputs the main 5 V supply. This 5 V powers the Raspberry Pi through the GPIO header and provides power to the two USB A connectors.
 
 From the 5 V, a 3.3 V and 1.8 V is created to power various circuitry.
 
 The 5 V regulator can be enabled from three sources.
 
-- The physical power switch will always keep the 5 V enabled.
-- When external power is provided on the USB-C. However, the EFM8 will keep the Raspberry Pi from starting using the RUN-pin if the physical power switch is in off.
-- The EFM8 can keep the 5 V on to allow the Raspberry Pi to power down cleanly.
+1. The physical power switch will always keep the 5 V active.
+2. When external power is provided on the USB-C. However, the EFM8 will keep the Raspberry Pi from starting using the RUN-pin if the physical power switch is in off.
+3. The EFM8 can keep the 5 V active to allow the Raspberry Pi to power down cleanly.
 
-An additional 1.8 V is created from the battery to provide a backup power to the u-blox CAM-M8Q to allow for a faster startup and satellite lock.
+An additional 1.8 V is created from the battery to provide a backup power to the u-blox CAM-M8Q. This enable a faster startup and satellite lock.
 
 Multiple test points can be found on the backside of the PCB.
 
@@ -148,7 +153,7 @@ To enable SSH access, run:
 sudo packer build -var enable_ssh=true src/stratux-zero-image
 ```
 
-> If you plan on enabling SSH, it is also a good idea to change `raspios_username` and `raspios_password`.
+> If you plan on enabling SSH, it is a good idea to change the `raspios_username` and `raspios_password` variables.
 
 To enable developer mode, run:
 
@@ -156,7 +161,7 @@ To enable developer mode, run:
 sudo packer build -var enable_developer_mode=true src/stratux-zero-image
 ```
 
-The `-var` can be used multiple times and variables can also be passed as a configuration file or as environment variables.
+The `-var` can be used multiple times and variables can also be passed as JSON or HCL configuration files or as environment variables.
 
 For a full list of variables and default values, see the [variables.pkr.hcl](src/stratux-zero-image/variables.pkr.hcl).
 
