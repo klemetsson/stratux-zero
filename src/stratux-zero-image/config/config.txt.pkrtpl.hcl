@@ -24,6 +24,9 @@ dtparam=audio=off
 camera_auto_detect=0
 display_auto_detect=0
 
+# Video setup
+max_framebuffers=2
+
 # Setup GPIO
 ${gpio.shutdown_pin == null ? "#" : ""}gpio=${gpio.shutdown_pin}=ip,pu
 ${gpio.status_pin == null ? "#" : ""}gpio=${gpio.status_pin}=op,dl

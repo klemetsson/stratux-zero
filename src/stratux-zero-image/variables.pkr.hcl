@@ -61,7 +61,7 @@ variable "wiringpi_version" {
 }
 
 variable "image_size" {
-    description = "Size of the finished disk image."
+    description = "Size of the disk image. If the PiShrink submodules has been pulled, then the finished image will be reduced."
     type        = string
     default     = "3.5G"
 }
@@ -96,6 +96,12 @@ variable "network_host_number" {
     default     = 1
 }
 
+variable "enable_ram_logs" {
+    description = "Write logs and temporary files to RAM instead of the SD card. This will whipe all logs on reboot."
+    type        = bool
+    default     = true
+}
+
 variable "enable_ssh" {
     description = "Enable and allow SSH traffic."
     type        = bool
@@ -103,9 +109,9 @@ variable "enable_ssh" {
 }
 
 variable "enable_hdmi" {
-    description = "Enable the HDMI output."
+    description = "Enable the HDMI output. You can also temporarily enble HDMI by creating a file named `hdmi` in the boot directory."
     type        = bool
-    default     = true
+    default     = false
 }
 
 variable "enable_developer_mode" {

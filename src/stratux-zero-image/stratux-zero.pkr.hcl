@@ -208,8 +208,8 @@ build {
         content = templatefile(
             "config/boot_config.sh.pkrtpl.hcl",
             {
-                disable_leds   = var.rpi_disable_leds
-                enable_hdmi    = var.enable_hdmi
+                disable_leds = var.rpi_disable_leds
+                enable_hdmi  = var.enable_hdmi
             }
         )
         destination = "/usr/local/bin/boot_config.sh"
@@ -222,6 +222,17 @@ build {
         inline = [
             "chmod +x /usr/local/bin/boot_config.sh",
             "systemctl enable boot_config.service",
+        ]
+    }
+
+    # Mount the log and temp directories to tmpfs
+    provisioner "shell" {
+        inline = [
+            "${var.enable_ram_logs == true ? "#" : ""}exit 0",
+            "echo 'tmpfs /tmp tmpfs defaults,noatime,mode=1777 0 0' >> /etc/fstab",
+            "echo 'tmpfs /var/tmp tmpfs defaults,noatime,mode=1777 0 0' >> /etc/fstab",
+            "echo 'tmpfs /var/log tmpfs defaults,noatime,mode=0755 0 0' >> /etc/fstab",
+            "echo 'tmpfs /var/spool tmpfs defaults,noatime,mode=1777 0 0' >> /etc/fstab",
         ]
     }
 
@@ -355,6 +366,7 @@ build {
         environment_vars = [
             "PATH=$PATH:/usr/local/go/bin",
         ]
+        timeout = "1h"
     }
 
     # Setup network configuration
@@ -411,9 +423,14 @@ build {
             # sshd
             "cp -f sshd_config /etc/ssh/sshd_config",
 
+            # Add Stratux bin to the root environment
+            "echo 'export PATH=\"$PATH:/opt/stratux/bin\"' >> /root/.bashrc",
+
             # Aliases
-            "cp -f stxAliases.txt /etc/profile.d/stratux_aliases.sh",
-            "sed -i /etc/profile.d/stratux_aliases.sh -e 's/function _stxhelp()/_stxhelp()/g'",
+            "cp -f stxAliases.txt /root/.bash_aliases",
+            "sed -i /root/.bash_aliases -e 's/function _stxhelp()/_stxhelp()/g'",
+            "chmod +x /root/.bash_aliases",
+            "echo '. ~/.bash_aliases' >> /root/.bashrc",
 
             # rtl-sdr
             "cp -f rtl-sdr-blacklist.conf /etc/modprobe.d/",
@@ -435,7 +452,7 @@ build {
                     AIS_Enabled   = var.enable_ais
                     BMP_Enabled   = var.enable_bmp
                     IMU_Enabled   = var.enable_imu
-                    # fancontrol options
+                    # fancontrol options (this will currently be overwritten by the Stratux web interface)
                     PWMPin = var.gpio_fan_pin != null ? var.gpio_fan_pin : 4
                 }
             )}' > /boot/stratux.conf.tmp",

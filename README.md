@@ -34,6 +34,7 @@ Note that this **does not** replace any primary systems and should only be used 
 - Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
 - Optimized for a Raspberry Pi Zero 2
+- Reduced Wifi transmit power to limit the range at which the open access point is visible
 - Watchdog that resets the Raspberry Pi if it has stopped
 - Starts in about 11 seconds
 - Five LED indicators
@@ -58,7 +59,7 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 Because of the global component shortage, many of the components are selected out of availability. This leads to a more expensive design with several difficult component footprints.
 Still, several of the components are impossible to acquire separatly and may need to be desoldered from various break-out and development kits.
 
-The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching which is located on a separate PCB.
+The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching that is located on a separate PCB.
 
 ### Ideas for improvements
 
@@ -68,13 +69,13 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
 - Add a third power switch position that would start the unit whenever there is
   external power. Good for when having the unit installed in the aircraft.
   This can be done by implementing a voltage divider that can be sampled by the MCU.
-- Add pin header for a fan that can be controlled from GPIO4.
+- Add pin header, MOSFET and diode for a fan that can be controlled from GPIO4.
 
 ### Power management
 
 ![Power management diagram](docs/images/stratux-zero-power-management.png)
 
-There is a DC/DC regulator that takes power from the battery or external USB-C and outputs the main 5 V supply. This 5 V powers the Raspberry Pi through the GPIO header and provides power to the two USB A connectors.
+There is a DC/DC regulator that take power from the battery or an external USB-C and output the main 5 V supply. This 5 V powers the Raspberry Pi through the GPIO header and powers to the two USB A connectors.
 
 From the 5 V, a 3.3 V and 1.8 V is created to power various circuitry.
 
@@ -145,9 +146,9 @@ This file can be flashed to an SD card using [Etcher](https://www.balena.io/etch
 
 ### Customizing
 
-The image can be customized by passing variables into the `packer build`.
+The image can be customized by passing variables to the `packer build` command.
 
-To enable SSH access, run:
+**Build with SSH access enabled:**
 
 ```bash
 sudo packer build -var enable_ssh=true src/stratux-zero-image
@@ -155,15 +156,21 @@ sudo packer build -var enable_ssh=true src/stratux-zero-image
 
 > If you plan on enabling SSH, it is a good idea to change the `raspios_username` and `raspios_password` variables.
 
-To enable developer mode, run:
+**Build with developer mode and HDMI output:**
 
 ```bash
-sudo packer build -var enable_developer_mode=true src/stratux-zero-image
+sudo packer build -var enable_developer_mode=true -var enable_hdmi=true src/stratux-zero-image
+```
+
+**Build with SDRs setup for the US:**
+
+```bash
+sudo packer build -var enable_uat=true -var enable_ogn=false src/stratux-zero-image
 ```
 
 The `-var` can be used multiple times and variables can also be passed as JSON or HCL configuration files or as environment variables.
 
-For a full list of variables and default values, see the [variables.pkr.hcl](src/stratux-zero-image/variables.pkr.hcl).
+For a full list of variables and their default values, see [variables.pkr.hcl](src/stratux-zero-image/variables.pkr.hcl).
 
 ## Building the EFM8 firmware
 
