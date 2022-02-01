@@ -23,20 +23,20 @@ Note that this **does not** replace any primary systems and should only be used 
 
 - Dual USB 2.0 receptacles for [NooElec NESDR Nano 2+](https://www.nooelec.com/store/nesdr-nano2.html) or similar, [Microchip USB2512](https://www.microchip.com/en-us/product/USB2512)
 - Pressure altimeter, [Bosch BMP280](https://www.bosch-sensortec.com/products/environmental-sensors/pressure-sensors/bmp280/)
-- 9-axis motion tracking, [TDK ICM-20948](https://invensense.tdk.com/products/motion-tracking/9-axis/icm-20948/)
-- GNSS (GPS, Galileo, GLONASS, BeiDou) with 2.5 m CEP accuracy, [u-blox CAM-M8Q](https://www.u-blox.com/en/product/cam-m8-series)
+- 9-axis motion tracking with 3x gyroscopes, 3x accelerometers and 3x compasses, [TDK ICM-20948](https://invensense.tdk.com/products/motion-tracking/9-axis/icm-20948/)
+- GNSS (GPS, Galileo, GLONASS, BeiDou) with 2.5 m CEP accuracy, support for GAGAN, WAAS, EGNOS and MSAS augmentation, **does not** support RAIM, [u-blox CAM-M8Q](https://www.u-blox.com/en/product/cam-m8-series)
 - GNSS backup power for faster initial lock
 - Carbon monoxide detector with 85 dB audible alarm, [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
-- 18650 battery socket
-- 4.2 V overvoltage, 2.5 V undervoltage and over-current protection, [TI BQ2972](https://www.ti.com/product/BQ2972)
+- Battery socket that take standard 18650 battery without built-in protection
+- 4.2 V overvoltage, 2.5 V undervoltage and over-current protection (make sure to select a battery that comply), [TI BQ2972](https://www.ti.com/product/BQ2972)
 - USB C power with built-in 1 A charger (can be set up to 3.15 A with a resistor change), with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
-- High temperature and low temperature charge monitoring
+- High and low battery temperature monitoring with charging inhibitor
 - Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
 - Optimized for a Raspberry Pi Zero 2
 - Reduced Wifi transmit power to limit the range at which the open access point is visible
-- Watchdog that resets the Raspberry Pi if it has stopped
-- Starts in about 11 seconds
+- Watchdog that resets the Raspberry Pi if it is unresponsive
+- System boots in about 11 seconds
 - Five LED indicators
     - Green power indicator that flashes if low battery
     - Green Stratux status indicator that flashes if starting up or shutting down
@@ -70,6 +70,7 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
   external power. Good for when having the unit installed in the aircraft.
   This can be done by implementing a voltage divider that can be sampled by the MCU.
 - Add pin header, MOSFET and diode for a fan that can be controlled from GPIO4.
+- Switch to a u-blox dead reckoning GNSS with RAIM.
 
 ### Power management
 
