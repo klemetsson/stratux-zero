@@ -9,7 +9,7 @@ This project is based on the great work of:
 - [Stratux - European edition (b3nn0/stratux)](https://github.com/b3nn0/stratux)
 
 The Stratux software for this project is mostly untouched. The main addition is
-a more user friendly build system with lots configuration and customization
+a more user friendly build system with more configuration and customization
 options. It also has the firewall enabled and does more cleanup and tweaking to
 enable faster boot time and lower power consumption.
 
@@ -28,19 +28,20 @@ Note that this **does not** replace any primary systems and should only be used 
 - GNSS backup power for faster initial lock
 - Carbon monoxide detector with 85 dB audible alarm, [SGX MICS-4514](https://sgx.cdistore.com/products/detail/mics4514-sgx-sensortech/333417/)
 - Battery socket that take standard 18650 battery without built-in protection
-- 4.2 V overvoltage, 2.5 V undervoltage and over-current protection (make sure to select a battery that comply), [TI BQ2972](https://www.ti.com/product/BQ2972)
-- USB C power with built-in 1 A charger (can be set up to 3.15 A with a resistor change), with support for USB BC1.2, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
+- 4.2 V overvoltage, 2.5 V undervoltage and over-current protection, **make sure to select a battery that is compatible**, [TI BQ2972](https://www.ti.com/product/BQ2972)
+- USB C power with built-in 1 A charger (can be set up to 3.15 A with a resistor change), with support for USB BC1.2, USB Type-C Rev. 1.2 CC, Apple, Samsung and legacy USB charge adapters, [Maxim MAX77751](https://www.maximintegrated.com/en/products/power/battery-management/MAX77751.html)
+- Can be powered from 4.5 to 13.7 V DC with a connector adapter with a detection resistor
 - High and low battery temperature monitoring with charging inhibitor
 - Fuel gauge that monitors the battery state of charge and aging, [TI BQ27441](https://www.ti.com/product/BQ27441-G1)
 - Hard/soft power switch that first signals the Raspberry to shutdown cleanly and if that takes to long, power will be cut
 - Optimized for a Raspberry Pi Zero 2
 - Reduced Wifi transmit power to limit the range at which the open access point is visible
-- Watchdog that resets the Raspberry Pi if it is unresponsive
+- Watchdog that resets the Raspberry Pi if it become unresponsive
 - System boots in about 11 seconds
 - Five LED indicators
-    - Green power indicator that flashes if low battery
-    - Green Stratux status indicator that flashes if starting up or shutting down
-    - Red carbon monoxide alert that flashes every 5 seconds if detected
+    - Green power indicator that flashes every 5 seconds if low battery and 2 times per second if very low
+    - Green Stratux status indicator that flashes when when waiting for startup or loss of GNSS lock
+    - Red carbon monoxide alert that flashes every 5 seconds if detected and 2 times per second if CO is high
     - Green external power indicator
     - Orange charge indicator that flashes while charging and turned on when fully charged
 
@@ -67,10 +68,16 @@ The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This h
   be switched off when the unit it charging while Raspberry Pi is not started.
   For example, using a [TI TPS2001D](https://www.ti.com/product/TPS2001D).
 - Add a third power switch position that would start the unit whenever there is
-  external power. Good for when having the unit installed in the aircraft.
+  external power. Good for when wanting to start and stop the unit with an external power switch.
   This can be done by implementing a voltage divider that can be sampled by the MCU.
-- Add pin header, MOSFET and diode for a fan that can be controlled from GPIO4.
-- Switch to a u-blox dead reckoning GNSS with RAIM.
+- Add pin header, MOSFET and diode for a 5V fan that can be controlled from GPIO4.
+- Switch to a u-blox with RAIM or a dead reckoning GNSS like [NEO-M8U](https://www.u-blox.com/en/product/neo-m8u-module).
+- Add battery specifications on the silkscreen visible in the battery holder.
+- Move `C3` to batter location between `IN` and `PGND` for `IC2` (MIC2876) to reduce noise from the inductor.
+- Add ESD protection for the USB line as the pogo pins make them very exposed.
+- Add pull-up resistors to `SHDN`, `PIRDY` and `PISHDN` as the EFM8 only has global internal pull-up.
+- Thermally isolate the battery temperature sensor so that it isn't cooled by the board. For example by removing the internal planes and moving the ground via.
+- Add more test points, for example on the charge disable.
 
 ### Power management
 
@@ -176,5 +183,7 @@ For a full list of variables and their default values, see [variables.pkr.hcl](s
 ## Building the EFM8 firmware
 
 The onboard 8051 microcontroller requires [Silicon Labs Simplicity Studio](https://www.silabs.com/developers/simplicity-studio) for compiling and flashing the firmware.
+The code is written for [Keil Cx51 compiler](https://www.keil.com/support/man/docs/c51/c51_intro.htm) and uses the [Keil RTX51 Tiny](https://www.keil.com/support/man/docs/tr51/tr51_overview.htm) real time operating system. A free Keil license can be registered through Simplicity Studio.
 
 To program the board you will need a [Silicon Labs USB Debug Adapter](https://www.silabs.com/development-tools/mcu/8-bit/8-bit-usb-debug-adapter) and a [TC2030-IDC 6-pin Tag-Connect cable](https://www.tag-connect.com/product/tc2030-idc-6-pin-tag-connect-plug-of-nails-spring-pin-cable-with-legs).
+Four pins need to be wired between the debug adapter and the Tag-Connect cable.
