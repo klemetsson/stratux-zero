@@ -52,7 +52,7 @@ The CO-alarm, watchdog, charging temperature monitoring, battery and power manag
 
 - CAD and CAM files for the custom PCBs
 - CAD files for the enclosure
-- Source code for the EFM8 firmware
+- Source code for the [EFM8 firmware](src/stratux-mcu)
 - Source code for the [monitoring](src/gpio-status) and [shutdown](src/gpio-shutdown) service for the Raspberry Pi
 - [Hashicorp Packer](https://www.packer.io/) build files and instructions on creating the Raspberry Pi image file
 
@@ -186,22 +186,22 @@ For a full list of variables and their default values, see [variables.pkr.hcl](s
 The onboard 8051 microcontroller requires [Silicon Labs Simplicity Studio](https://www.silabs.com/developers/simplicity-studio) for compiling and flashing the firmware.
 The code is written for [Keil Cx51 compiler](https://www.keil.com/support/man/docs/c51/c51_intro.htm) and uses the [Keil RTX51 Tiny](https://www.keil.com/support/man/docs/tr51/tr51_overview.htm) real time operating system. A free Keil license can be registered through Simplicity Studio.
 
-### Cable adapter
+### Silicon Labs debug cable adapter
 
 To program the board you will need a [Silicon Labs USB Debug Adapter](https://www.silabs.com/development-tools/mcu/8-bit/8-bit-usb-debug-adapter) and a [TC2030-IDC 6-pin Tag-Connect cable](https://www.tag-connect.com/product/tc2030-idc-6-pin-tag-connect-plug-of-nails-spring-pin-cable-with-legs).
 Four pins need to be wired between the debug adapter and the Tag-Connect cable.
 
 ![Silicon Labs Debug Adapter and TC2030 IDC pinout](docs/images/tagconnect-silabs-idc.png)
 
-| Description    | Debug Adapter IDC Pin # | TC IDC Pin # | TC TAG Pin # |
-|----------------|-------------------------|--------------|--------------|
-| Not Connected  | 1                       |              |              |
-| GND (Ground)   | 2                       |              |              |
-| GND (Ground)   | 3                       |              |              |
-| C2D            | **4**                   | **3**        | **3**        |
-| C2CK pin share | 5                       |              |              |
-| C2D pin share  | **6**                   | **5**        | **5**        |
-| C2CK           | **7**                   | **2**        | **2**        |
-| Not Connected  | 8                       |              |              |
-| GND (Ground)   | **9**                   | **4**        | **4**        |
-| USB Power      | 10                      |              |              |
+| Description        | Debug Adapter IDC Pin # | TC IDC Pin # | TC TAG Pin # |
+|--------------------|-------------------------|--------------|--------------|
+| Not Connected      | 1                       |              |              |
+| GND (Ground)       | 2                       |              |              |
+| GND (Ground)       | 3                       |              |              |
+| **C2D**            | **4**                   | **3**        | **3**        |
+| C2CK pin share     | 5                       |              |              |
+| **C2D pin share**  | **6**                   | **5**        | **5**        |
+| **C2CK**           | **7**                   | **2**        | **2**        |
+| Not Connected      | 8                       |              |              |
+| **GND (Ground)**   | **9**                   | **4**        | **4**        |
+| USB Power          | 10                      |              |              |

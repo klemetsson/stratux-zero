@@ -8,6 +8,10 @@ packer-manifest.json
 *.img
 *.checksum
 
+# Keil / Simplicity Studio
+Keil 8051*/
+.settings/
+
 # Visual Studio Code
 .vscode/*
 !.vscode/settings.json
