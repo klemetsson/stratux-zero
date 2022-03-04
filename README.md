@@ -48,6 +48,14 @@ Read more about the Stratux project at [stratux.me](http://stratux.me/) and at [
 
 The CO-alarm, watchdog, charging temperature monitoring, battery and power management is handled by an [Silicon Labs EFM8BB10 8051 MCU](https://www.silabs.com/mcu/8-bit-microcontrollers/efm8-busy-bee/device.efm8bb10f4g-qfn20).
 
+## TODO
+
+- Testing of first revision PCB and software
+- Add fuel gague check in MCU code
+- Add default AHRS device orientation settings in Packer build files
+- Light pipe CAM files
+- Enclosure CAM files
+
 ## Contents of this repository
 
 - CAD and CAM files for the custom PCBs
