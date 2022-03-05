@@ -71,23 +71,6 @@ Still, several of the components are impossible to acquire separatly and may nee
 
 The integrated 1090 MHz antenna for ADS-B data is a simple dipole design. This however, requires a balun with impedence matching that is located on a separate PCB.
 
-### Ideas for improvements
-
-- Add a USB power delivery switch to the external ports so that they can
-  be switched off when the unit it charging while Raspberry Pi is not started.
-  For example, using a [TI TPS2001D](https://www.ti.com/product/TPS2001D).
-- Add a third power switch position that would start the unit whenever there is
-  external power. Good for when wanting to start and stop the unit with an external power switch.
-  This can be done by implementing a voltage divider that can be sampled by the MCU.
-- Add pin header, MOSFET and diode for a 5V fan that can be controlled from GPIO4.
-- Switch to a u-blox with RAIM or a dead reckoning GNSS like [NEO-M8U](https://www.u-blox.com/en/product/neo-m8u-module).
-- Add battery specifications on the silkscreen visible in the battery holder.
-- Move `C3` to batter location between `IN` and `PGND` for `IC2` (MIC2876) to reduce noise from the inductor.
-- Add ESD protection for the USB line as the pogo pins make them very exposed.
-- Add pull-up resistors to `SHDN`, `PIRDY` and `PISHDN` as the EFM8 only has global internal pull-up.
-- Thermally isolate the battery temperature sensor so that it isn't cooled by the board. For example by removing the internal planes and moving the ground via.
-- Add more test points, for example on the charge disable.
-
 ### Power management
 
 ![Power management diagram](docs/images/stratux-zero-power-management.png)
@@ -105,6 +88,23 @@ The 5 V regulator can be enabled from three sources.
 An additional 1.8 V is created from the battery to provide a backup power to the u-blox CAM-M8Q. This enable a faster startup and satellite lock.
 
 Multiple test points can be found on the backside of the PCB.
+
+### Ideas for improvements
+
+- Add a USB power delivery switch to the external ports so that they can
+  be switched off when the unit it charging while Raspberry Pi is not started.
+  For example, using a [TI TPS2001D](https://www.ti.com/product/TPS2001D).
+- Add a third power switch position that would start the unit whenever there is
+  external power. Good for when wanting to start and stop the unit with an external power switch.
+  This can be done by implementing a voltage divider that can be sampled by the MCU.
+- Add pin header, MOSFET and diode for a 5V fan that can be controlled from GPIO4.
+- Switch to a u-blox with RAIM or a dead reckoning GNSS like [NEO-M8U](https://www.u-blox.com/en/product/neo-m8u-module).
+- Add battery specifications on the silkscreen visible in the battery holder.
+- Move `C3` to batter location between `IN` and `PGND` for `IC2` (MIC2876) to reduce noise from the inductor.
+- Add ESD protection for the USB line as the pogo pins make them very exposed.
+- Add pull-up resistors to `SHDN`, `PIRDY` and `PISHDN` as the EFM8 only has global internal pull-up.
+- Thermally isolate the battery temperature sensor so that it isn't cooled by the board. For example by removing the internal planes and moving the ground via.
+- Add more test points, for example on the charge disable.
 
 ## Building the Stratux Zero image
 
