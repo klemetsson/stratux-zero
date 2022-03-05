@@ -34,6 +34,11 @@
 #define BAT_CHARGE_WARNING  (2) // You should charge
 #define BAT_CHARGE_CRITICAL (3) // Will shutdown soon
 #define BAT_CHARGE_EMPTY    (4) // Shutting down
+#define BAT_CHARGE_ERROR    (5) // Could not get battery charge
+
+#define BAT_SOC_WARNING  (20) // Level to trigger BAT_CHARGE_WARNING
+#define BAT_SOC_CRITICAL (5)  // Level to trigger BAT_CHARGE_CRITICAL
+#define BAT_SOC_EMPTY    (2)  // Level to trigger BAT_CHARGE_EMPTY
 
 #define CO_LEVEL_UNKNOWN  (0) // Unknown CO level
 #define CO_LEVEL_OK       (1) // No dangerous levels
@@ -50,6 +55,9 @@
 #define STRATUX_RUNNING (1) // Stratux is started
 #define STRATUX_READY   (2) // Stratux is started and is ready
 #define STRATUX_TIMEOUT (3) // Stratux heartbeat has timed out
+
+#define BQ72441_I2C_ADDRESS (0x55)
+#define BQ27441_COMMAND_SOC (0x1C) // StateOfCharge()
 
 //-----------------------------------------------------------------------------
 // Stratux state machine states
@@ -117,6 +125,19 @@
 #define STATE_POWEROFF (15)
 
 //-----------------------------------------------------------------------------
+// SMBus state machine states
+//-----------------------------------------------------------------------------
+
+#define SMBUS_IDLE         (0)
+#define SMBUS_WRITE_SENT   (1)
+#define SMBUS_COMMAND_SENT (2)
+#define SMBUS_RESTART      (3)
+#define SMBUS_READ_SENT    (4)
+#define SMBUS_DATA_0       (5)
+#define SMBUS_DATA_1       (6)
+#define SMBUS_ERROR        (7)
+
+//-----------------------------------------------------------------------------
 // I/O
 //-----------------------------------------------------------------------------
 
@@ -166,7 +187,9 @@ extern uint8_t data co_level;
 // Overflows every 8000 ms, used for state machine and LED flashing
 extern uint8_t data interval;
 
-// State machine state for SMBus
-extern uint8_t data smbus_state;
+// State for the SMBus interrupt routine
+extern uint8_t data smbus_cmd;
+extern uint8_t data smbus_data0;
+extern uint8_t data smbus_data1;
 
 #endif /* INC_DEVICECONFIG_H_ */

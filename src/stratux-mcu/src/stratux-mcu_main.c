@@ -215,7 +215,7 @@ void task_indicator(void) _task_ TASK_ID_INDICATORS {
 				// 500 ms on, 500 ms off
 				LED_POWER = (bit)(local_interval & 0x10);
 			}
-			else if (bat_charge == BAT_CHARGE_WARNING) {
+			else if (bat_charge == BAT_CHARGE_WARNING || bat_charge == BAT_CHARGE_ERROR) {
 				// 3500 ms on, 500 ms off
 				LED_POWER = (local_interval & 0x70) == 0x70;
 			}
@@ -308,18 +308,21 @@ uint8_t data co_level = CO_LEVEL_UNKNOWN;
 
 void task_sensors(void) _task_ TASK_ID_SENSORS {
 	uint16_t sample;
+	uint8_t loop = 0;
 
 	while (true) {
 		// Read battery temperature and see if it is safe to charge
-		ADC0MX = 0x05; // P0.5
-		ADC0 = 0x00;
-		os_clear_signal(TASK_ID_SENSORS);
-		ADC0CN0_ADBUSY = true;
-		os_wait1(SIG_EVENT);
-		sample = ADC0;
-		bat_temp_ok = bat_temp_ok
-				? sample >= BAT_TEMP_HIGH_ON && sample <= BAT_TEMP_LOW_ON
-			    : sample <= BAT_TEMP_HIGH_OFF && sample <= BAT_TEMP_LOW_OFF;
+		if (!(loop & 3)) {
+			ADC0MX = 0x05; // P0.5
+			ADC0 = 0x00;
+			os_clear_signal(TASK_ID_SENSORS);
+			ADC0CN0_ADBUSY = true;
+			os_wait1(SIG_EVENT);
+			sample = ADC0;
+			bat_temp_ok = bat_temp_ok
+					? sample >= BAT_TEMP_HIGH_ON && sample <= BAT_TEMP_LOW_ON
+					: sample <= BAT_TEMP_HIGH_OFF && sample <= BAT_TEMP_LOW_OFF;
+		}
 
 		// Read CO level
 		ADC0MX = 0x0e; // P1.6
@@ -338,9 +341,27 @@ void task_sensors(void) _task_ TASK_ID_SENSORS {
 			co_level = CO_LEVEL_OK;
 
 		// Read fuel gauge state of charge
-		bat_charge = BAT_CHARGE_OK;
+		if (!(loop & 63)) {
+			smbus_cmd = BQ27441_COMMAND_SOC;
+			os_clear_signal(TASK_ID_SENSORS);
+			SMB0CN0_STA = true;
+			os_wait1(SIG_EVENT);
+			sample = ((uint16_t)smbus_data1 << 8) | smbus_data0;
+			if (sample == 0xffff) {
+				bat_charge = BAT_CHARGE_ERROR;
+			}
+			else if (sample < BAT_SOC_EMPTY)
+				bat_charge = BAT_CHARGE_EMPTY;
+			else if (sample < BAT_SOC_CRITICAL)
+				bat_charge = BAT_CHARGE_CRITICAL;
+			else if (sample < BAT_SOC_WARNING)
+				bat_charge = BAT_CHARGE_WARNING;
+			else
+				bat_charge = BAT_CHARGE_OK;
+		}
 
 		// Pause the task for 1000 ms
 		os_wait2(K_IVL, 100);
+		loop++;
 	}
 }

@@ -66,9 +66,69 @@ SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn) {
 //
 //-----------------------------------------------------------------------------
 
-uint8_t data smbus_state;
+uint8_t data smbus_cmd;
+uint8_t data smbus_data0;
+uint8_t data smbus_data1;
 
 SI_INTERRUPT (SMBUS0_ISR, SMBUS0_IRQn)
 {
+	static uint8_t data smbus_state = SMBUS_IDLE;
+
+	switch (smbus_state) {
+	case SMBUS_IDLE:
+		SMB0CN0_STA = false;
+		SMB0CN0_STO = false;
+		SMB0DAT = BQ72441_I2C_ADDRESS;
+		smbus_state++;
+		break;
+	case SMBUS_WRITE_SENT:
+		if (SMB0CN0_ACK) {
+			SMB0DAT = BQ27441_COMMAND_SOC;
+			smbus_state++;
+		}
+		else smbus_state = SMBUS_ERROR;
+		break;
+	case SMBUS_COMMAND_SENT:
+		if (SMB0CN0_ACK) {
+			SMB0CN0_STA = true;
+			smbus_state++;
+		}
+		else smbus_state = SMBUS_ERROR;
+		break;
+	case SMBUS_RESTART:
+		SMB0CN0_STA = false;
+		SMB0CN0_STO = false;
+		SMB0DAT = BQ72441_I2C_ADDRESS | 0x01;
+		smbus_state++;
+		break;
+	case SMBUS_READ_SENT:
+		if (SMB0CN0_ACK) {
+			SMB0CN0_ACK = true;
+			smbus_state++;
+		}
+		else smbus_state = SMBUS_ERROR;
+		break;
+	case SMBUS_DATA_0:
+		smbus_data0 = SMB0DAT;
+		SMB0CN0_ACK = false;
+		smbus_state++;
+		break;
+	case SMBUS_DATA_1:
+		smbus_data1 = SMB0DAT;
+		SMB0CN0_STO = true;
+		smbus_state = SMBUS_IDLE;
+		isr_send_signal(TASK_ID_SENSORS);
+		break;
+	}
+
+	// Error detected
+	if (smbus_state == SMBUS_ERROR) {
+		smbus_data0 = 0xff;
+		smbus_data1 = 0xff;
+		SMB0CN0_STO = true;
+		smbus_state = SMBUS_IDLE;
+		isr_send_signal(TASK_ID_SENSORS);
+	}
+
 	SMB0CN0_SI = false;
 }
