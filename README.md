@@ -122,6 +122,9 @@ Pulling the optional [Drewsif/PiShrink](https://github.com/Drewsif/PiShrink) sub
 sudo apt-get install git unzip qemu-user-static e2fsprogs dosfstools libarchive-tools jq
 ```
 
+> There is an issue when running QEMU in WSL on Windows that may require you to run `sudo update-binfmts --enable` after a reboot.
+> This could potentially be added to a script in `/etc/profile.d/`.
+
 **Install Packer:**
 
 ```bash
