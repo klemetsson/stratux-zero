@@ -91,11 +91,12 @@ An additional 1.8 V is created from the battery to provide a backup power to the
 
 Multiple test points can be found on the backside of the PCB.
 
-### Ideas for improvements
+### Ideas for improvements and fixes
 
-- Add a USB power delivery switch to the external ports so that they can
+- Improve the 5V regulator enable logic so that its weak pull up and leakage current of the EFM8 doesn't cause issues.
+- Add a USB power delivery switch to the external ports so that they can.
   be switched off when the unit it charging while Raspberry Pi is not started.
-  For example, using a [TI TPS2001D](https://www.ti.com/product/TPS2001D).
+  For example, using two [TI TPS2001D](https://www.ti.com/product/TPS2001D) or a double USB power switch.
 - Add a third power switch position that would start the unit whenever there is
   external power. Good for when wanting to start and stop the unit with an external power switch.
   This can be done by implementing a voltage divider that can be sampled by the MCU.
@@ -104,9 +105,9 @@ Multiple test points can be found on the backside of the PCB.
 - Add battery specifications on the silkscreen visible in the battery holder.
 - Move `C3` to batter location between `IN` and `PGND` for `IC2` (MIC2876) to reduce noise from the inductor.
 - Add ESD protection for the USB line as the pogo pins make them very exposed.
-- Add pull-up resistors to `SHDN`, `PIRDY` and `PISHDN` as the EFM8 only has global internal pull-up.
+- Add pull-up resistors to `SHDN`, `PIRDY` and `PISHDN` as the EFM8 only has global internal pull-up enable.
 - Thermally isolate the battery temperature sensor so that it isn't cooled by the board. For example by removing the internal planes and moving the ground via.
-- Add more test points, for example on the charge disable.
+- Add more test points, for example on the charge disable and SMBus lines.
 
 ## Building the Stratux Zero image
 
