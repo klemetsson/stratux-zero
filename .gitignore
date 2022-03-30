@@ -11,6 +11,7 @@ packer-manifest.json
 # Keil / Simplicity Studio
 Keil 8051*/
 .settings/
+imported_project_report.html
 
 # Visual Studio Code
 .vscode/*

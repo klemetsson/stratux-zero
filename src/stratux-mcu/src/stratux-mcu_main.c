@@ -33,40 +33,36 @@ void SiLabs_Startup(void) {
 }
 
 //-----------------------------------------------------------------------------
-// Macro functions
-// ----------------------------------------------------------------------------
-
-// Make the buzzer buzz
-#define start_buzzer() {TMR2CN0 |= TMR2CN0_TR2__RUN;}
-
-// Stop the buzzer buzzing
-#define stop_buzzer() {TMR2CN0 &= ~TMR2CN0_TR2__RUN; O_BUZZER = false;}
-
-// Enable charging
-#define charge_enable() {P0MDIN &= ~P0MDIN_B3__DIGITAL;}
-
-// Disable charging
-#define charge_disable() {P0MDIN |= P0MDIN_B3__DIGITAL; O_DISBL = false;}
-
-// Get the INOKB status
-#define has_ext_pwr() (CMP0CN0 & CMP0CN0_CPOUT__POS_GREATER_THAN_NEG)
-
-//-----------------------------------------------------------------------------
 // Main task
 // ----------------------------------------------------------------------------
 
 uint8_t data stratux_state = STATE_BOOT;
+uint8_t data watchdog_mask = WATCHDOG_MASK;
 
 void task_main(void) _task_ TASK_ID_MAIN {
-  uint8_t timestamp;
+  uint8_t i;
+
+  stratux_state = STATE_BOOT;
 
   // Call hardware initialization routine
   enter_DefaultMode_from_RESET();
 
   // Wake the fuel gauge
   O_GPOUT = false;
-  os_wait2(K_TMO, 1);
+  os_wait2(K_TMO, 5);
   O_GPOUT = true;
+
+  // Fix the SMBus slave state in case of improper reset
+  while (!IO_SDA) {
+      O_SCL = false;
+      for (i = 0; i < 255; i++);
+      O_SCL = true;
+      while (!O_SCL);
+      for (i = 0; i < 50; i++);
+  }
+
+  // Enable SMBus
+  enter_ReadyMode_from_DefaultMode();
 
   // Start the other tasks
   os_create_task(TASK_ID_INDICATORS);
@@ -74,111 +70,121 @@ void task_main(void) _task_ TASK_ID_MAIN {
 
   while (true) {
 	  switch (stratux_state) {
-	  case STATE_BOOT:
-		  if (bat_charge == BAT_CHARGE_EMPTY) {
-			  stratux_state = STATE_POWEROFF;
-		  }
-		  else if (bat_charge != BAT_CHARGE_UNKNOWN) {
-			  if (I_SHDN) {
-				  stratux_state = STATE_START;
-				  // Make a 500 ms beep
-				  start_buzzer();
-				  os_wait2(K_TMO, 50);
-				  stop_buzzer();
-			  }
-			  else {
-				  stratux_state = STATE_SHUTDOWN;
-			  }
-			  continue;
-		  }
-		  break;
-	  case STATE_START:
-          O_EN = true;
-          O_RST = true;
-          O_PISHDN = true;
-          os_wait2(K_TMO, 5);
+      case STATE_BOOT:
+        if (bat_charge == BAT_CHARGE_EMPTY) {
+          stratux_state = STATE_POWEROFF;
+        }
+        else if (!I_SHDN) {
+            stratux_state = STATE_SHUTDOWN;
+        }
+        else if (bat_charge != BAT_CHARGE_UNKNOWN) {
+          stratux_state = STATE_START;
+        }
+        break;
+
+      case STATE_START:
+        O_EN = true;
+        O_RST = true;
+        O_PISHDN = true;
+        os_wait2(K_TMO, 20);
+        if (I_SHDN) {
           O_RST = false;
-          stratux_state = STATE_STARTING1;
-          timestamp = interval;
-		  break;
-	  case STATE_STARTING1:
-	  case STATE_STARTING2:
-	  case STATE_STARTING3:
-	  case STATE_STARTING4:
-	  case STATE_STARTING5:
-		  if (stratux_status == STRATUX_RUNNING) {
-			  stratux_state = STATE_RUNNING;
-		  }
-		  else if (stratux_status == STRATUX_READY) {
-			  stratux_state = STATE_READY;
-		  }
-		  // 4 seconds has passed
-		  else if ((interval - timestamp) > 128) {
-			  timestamp = interval;
-			  stratux_state++;
-		  }
-		  break;
-	  case STATE_START_TIMEOUT:
-		  stratux_state = STATE_START;
-		  continue;
-	  case STATE_RUNNING:
-	  case STATE_READY:
-		  if (bat_charge == BAT_CHARGE_EMPTY) {
-			  stratux_state = STATE_STOP;
-			  continue;
-		  }
-		  else if (stratux_status == STRATUX_RUNNING) {
-			  stratux_state = STATE_RUNNING;
-		  }
-		  else if (stratux_status == STRATUX_READY) {
-			  stratux_state = STATE_READY;
-		  }
-		  else if (stratux_status == STRATUX_TIMEOUT) {
-			  stratux_state = STATE_STOP;
-			  continue;
-		  }
-		  break;
-	  case STATE_STOP:
-		  O_PISHDN = false;
-		  stratux_state = STATE_STOPPING1;
-		  timestamp = interval;
-		  break;
-	  case STATE_STOPPING1:
-	  case STATE_STOPPING2:
-	  case STATE_STOPPING3:
-		  // 4 seconds has passed
-		  if ((interval - timestamp) > 128) {
-			  timestamp = interval;
-			  stratux_state++;
-		  }
-		  break;
-	  case STATE_SHUTDOWN:
-		  O_RST = true;
-		  O_PISHDN = true;
-		  if (bat_charge == BAT_CHARGE_EMPTY) {
-			  stratux_state = STATE_POWEROFF;
-		  }
-		  else if (I_SHDN) {
-			  stratux_state = STATE_BOOT;
-			  continue;
-		  }
-		  else O_EN = false;
-		  break;
-	  case STATE_POWEROFF:
-		  O_RST = true;
-		  O_PISHDN = true;
-		  if (bat_charge != BAT_CHARGE_EMPTY) {
-			  stratux_state = STATE_SHUTDOWN;
-			  continue;
-		  }
-		  else O_EN = false;
-		  break;
-	  default:
-		  stratux_state = STATE_BOOT;
+          stratux_state = STATE_START_GRACE;
+          main_countdown = 8 * 2;
+        }
+        else {
+          stratux_state = STATE_SHUTDOWN;
+        }
+        break;
+
+      case STATE_START_GRACE:
+        if (!main_countdown) {
+            stratux_state = STATE_STARTING;
+            main_countdown = 9 * 2;
+        }
+        break;
+
+      case STATE_STARTING:
+        if (stratux_status == STRATUX_RUNNING) {
+          stratux_state = STATE_RUNNING;
+        }
+        else if (stratux_status == STRATUX_READY) {
+          stratux_state = STATE_READY;
+        }
+        // 8 + 9 seconds has passed
+        else if (!main_countdown) {
+          stratux_state = STATE_START_TIMEOUT;
+        }
+        break;
+
+      case STATE_START_TIMEOUT:
+        if (I_SHDN) {
+          stratux_state = STATE_START;
+        }
+        else {
+          stratux_state = STATE_STOP;
+        }
+        break;
+
+      case STATE_RUNNING:
+      case STATE_READY:
+        if (bat_charge == BAT_CHARGE_EMPTY || !I_SHDN) {
+          stratux_state = STATE_STOP;
+        }
+        else if (stratux_status == STRATUX_RUNNING) {
+          stratux_state = STATE_RUNNING;
+        }
+        else if (stratux_status == STRATUX_READY) {
+          stratux_state = STATE_READY;
+        }
+        else if (stratux_status == STRATUX_TIMEOUT) {
+          stratux_state = STATE_STOP;
+        }
+        break;
+
+      case STATE_STOP:
+        O_PISHDN = false;
+        stratux_state = STATE_STOPPING;
+        main_countdown = 9 * 2;
+        break;
+
+      case STATE_STOPPING:
+        // 9 seconds has passed
+        if (!main_countdown) {
+            stratux_state = STATE_SHUTDOWN;
+        }
+        break;
+
+      case STATE_SHUTDOWN:
+        O_RST = true;
+        O_PISHDN = true;
+        if (bat_charge == BAT_CHARGE_EMPTY) {
+          stratux_state = STATE_POWEROFF;
+        }
+        else if (I_SHDN) {
+          stratux_state = STATE_BOOT;
+        }
+        else O_EN = false;
+        break;
+
+      case STATE_POWEROFF:
+        O_RST = true;
+        O_PISHDN = true;
+        if (bat_charge != BAT_CHARGE_EMPTY) {
+          stratux_state = STATE_SHUTDOWN;
+        }
+        else O_EN = false;
+        break;
+
+      default:
+        stratux_state = STATE_BOOT;
 	  }
 
-	  // Reset watchdog
-	  WDTCN = 0xA5;
+	  // Reset watchdog if all flags are cleared
+	  if (!watchdog_mask) {
+      WDTCN = 0xA5;
+      watchdog_mask = WATCHDOG_MASK;
+    }
 	  // Switch to next task
 	  os_switch_task();
   }                             
@@ -192,17 +198,18 @@ void task_main(void) _task_ TASK_ID_MAIN {
 uint8_t data stratux_status = STRATUX_UNKNOWN;
 
 void task_indicator(void) _task_ TASK_ID_INDICATORS {
-	uint8_t offset, local_interval, timestamp;
+	uint8_t offset, local_interval;
 	bit is_on, pi_ready;
 
 	is_on = false;
 	pi_ready = I_PIRDY;
-	timestamp = interval;
+	stratux_status = STRATUX_UNKNOWN;
+	status_countup = 0;
 
 	while (true) {
 
 		// Handle LEDs and the buzzer
-		if (I_SHDN && stratux_state != STATE_POWEROFF) {
+		if (stratux_state && stratux_state < STATE_SHUTDOWN) {
 			// Sync blinking with the power on event
 			if (!is_on) {
 				is_on = true;
@@ -211,7 +218,10 @@ void task_indicator(void) _task_ TASK_ID_INDICATORS {
 			local_interval = interval - offset;
 
 			// Power LED
-			if (bat_charge == BAT_CHARGE_CRITICAL) {
+			if (!I_SHDN) {
+			    LED_POWER = true;
+			}
+			else if (bat_charge == BAT_CHARGE_CRITICAL) {
 				// 500 ms on, 500 ms off
 				LED_POWER = (bit)(local_interval & 0x10);
 			}
@@ -242,7 +252,7 @@ void task_indicator(void) _task_ TASK_ID_INDICATORS {
 
 			// Stratux ready LED
 			if (stratux_state == STATE_READY)
-				LED_READY = true;
+				LED_READY = false;
 			else if (stratux_state == STATE_RUNNING)
 				// 1500 ms on, 500 ms off
 				LED_READY = (local_interval & 0x30) == 0x30;
@@ -268,32 +278,33 @@ void task_indicator(void) _task_ TASK_ID_INDICATORS {
 		}
 
 		// Detect Stratux heartbeat
-		if (pi_ready != I_PIRDY) {
+		if (stratux_state < STATE_STARTING || stratux_state > STATE_STOPPING) {
+		    pi_ready = I_PIRDY;
+		    status_countup = 0;
+		    stratux_status = STRATUX_UNKNOWN;
+		}
+		else if (pi_ready != I_PIRDY) {
 			pi_ready = I_PIRDY;
-			// Raising edge
-			if (pi_ready) {
-				timestamp = interval;
-			}
 			// Falling edge
-			else {
+			if (!pi_ready) {
 				// Pulse > 350 ms, 200 ms nominal is Stratux running and ready
-				if ((interval - timestamp) > 11) {
+				if (status_countup > 11) {
 					stratux_status = STRATUX_READY;
 				}
 				// Pulse < 350 ms, 500 ms nominal is Stratux running but waiting for GNSS
-				else {
+				else if (status_countup > 4) {
 					stratux_status = STRATUX_RUNNING;
 				}
-				timestamp = interval;
 			}
+			status_countup = 0;
 		}
 		// Timeout 2 s
-		else if ((interval - timestamp) > 64) {
-			timestamp = interval;
+		else if (status_countup > 64) {
 			stratux_status = STRATUX_TIMEOUT;
 		}
 
 		// Switch to next task
+		watchdog_mask &= ~WATCHDOG_MASK_INDICATORS;
 		os_switch_task();
 	}
 }
@@ -310,14 +321,19 @@ void task_sensors(void) _task_ TASK_ID_SENSORS {
 	uint16_t sample;
 	uint8_t loop = 0;
 
+	bit temp = false;
+
+	bat_charge = BAT_CHARGE_OK;
+	co_level = CO_LEVEL_OK;
+	bat_temp_ok = true;
+
 	while (true) {
 		// Read battery temperature and see if it is safe to charge
-		if (!(loop & 3)) {
+		if (!(loop & 31)) {
 			ADC0MX = 0x05; // P0.5
 			ADC0 = 0x00;
-			os_clear_signal(TASK_ID_SENSORS);
 			ADC0CN0_ADBUSY = true;
-			os_wait1(SIG_EVENT);
+			os_wait1(RDY_EVENT);
 			sample = ADC0;
 			bat_temp_ok = bat_temp_ok
 					? sample >= BAT_TEMP_HIGH_ON && sample <= BAT_TEMP_LOW_ON
@@ -325,30 +341,40 @@ void task_sensors(void) _task_ TASK_ID_SENSORS {
 		}
 
 		// Read CO level
-		ADC0MX = 0x0e; // P1.6
-		ADC0 = 0x00;
-		os_clear_signal(TASK_ID_SENSORS);
-		ADC0CN0_ADBUSY = true;
-		os_wait1(SIG_EVENT);
-		sample = ADC0;
-		if (sample >= CO_ADC_LETHAL)
-			co_level = CO_LEVEL_LETHAL;
-		else if (sample >= CO_ADC_CRITICAL)
-			co_level = CO_LEVEL_CRITICAL;
-		else if (sample >= CO_ADC_WARNING)
-			co_level = CO_LEVEL_WARNING;
-		else
-			co_level = CO_LEVEL_OK;
+    if (!(loop & 31)) {
+      ADC0MX = 0x0e; // P1.6
+      ADC0 = 0x00;
+      ADC0CN0_ADBUSY = true;
+      os_wait1(RDY_EVENT);
+      sample = ADC0;
+      if (sample >= CO_ADC_LETHAL)
+        co_level = CO_LEVEL_LETHAL;
+      else if (sample >= CO_ADC_CRITICAL)
+        co_level = CO_LEVEL_CRITICAL;
+      else if (sample >= CO_ADC_WARNING)
+        co_level = CO_LEVEL_WARNING;
+      else
+        co_level = CO_LEVEL_OK;
+    }
 
 		// Read fuel gauge state of charge
 		if (!(loop & 63)) {
-			smbus_cmd = BQ27441_COMMAND_SOC;
-			os_clear_signal(TASK_ID_SENSORS);
-			SMB0CN0_STA = true;
-			os_wait1(SIG_EVENT);
-			sample = ((uint16_t)smbus_data1 << 8) | smbus_data0;
-			if (sample == 0xffff) {
+      // Get the state of charge
+		  smbus_write_command(BQ27441_COMMAND_SOC);
+		  os_wait1(RDY_EVENT);
+		  if (!smbus_error) {
+		      os_wait2(K_TMO, 1);
+		      smbus_read16();
+		      os_wait1(RDY_EVENT);
+		      if (!smbus_error) {
+		          sample = ((uint16_t)smbus_data1 << 8) | smbus_data0;
+		          PCA0 = sample;
+		      }
+		  }
+
+			if (smbus_error) {
 				bat_charge = BAT_CHARGE_ERROR;
+				PCA0 = 0xff00;
 			}
 			else if (sample < BAT_SOC_EMPTY)
 				bat_charge = BAT_CHARGE_EMPTY;
@@ -359,8 +385,11 @@ void task_sensors(void) _task_ TASK_ID_SENSORS {
 			else
 				bat_charge = BAT_CHARGE_OK;
 		}
+		// DEBUG
+		bat_charge = BAT_CHARGE_OK;
 
-		// Pause the task for 1000 ms
+		// Pause the task for 100 ms
+		watchdog_mask &= ~WATCHDOG_MASK_SENSORS;
 		os_wait2(K_IVL, 100);
 		loop++;
 	}

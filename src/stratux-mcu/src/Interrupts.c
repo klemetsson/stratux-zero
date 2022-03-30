@@ -22,7 +22,7 @@
 
 SI_INTERRUPT(ADC0EOC_ISR, ADC0EOC_IRQn) {
 	ADC0CN0_ADINT = false;
-	isr_send_signal(TASK_ID_SENSORS);
+	isr_set_ready(TASK_ID_SENSORS);
 }
 
 //-----------------------------------------------------------------------------
@@ -36,8 +36,11 @@ SI_INTERRUPT(ADC0EOC_ISR, ADC0EOC_IRQn) {
 //-----------------------------------------------------------------------------
 
 SI_INTERRUPT(TIMER2_ISR, TIMER2_IRQn) {
+	static bit buzz = false;
+
+	buzz = !buzz;
+	O_BUZZER = buzz;
 	TMR2CN0_TF2H = false;
-	O_BUZZER ^= O_BUZZER;
 }
 
 //-----------------------------------------------------------------------------
@@ -50,11 +53,16 @@ SI_INTERRUPT(TIMER2_ISR, TIMER2_IRQn) {
 //
 //-----------------------------------------------------------------------------
 
-uint8_t data interval = 0;
+uint8_t data interval = 0; // 32 = 1 second
+uint8_t data main_countdown = 0; // 2 = 1 second count down
+uint8_t data status_countup = 0xff; // 32 = second
 
 SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn) {
 	TMR3CN0 &= ~TMR3CN0_TF3H__SET;
 	interval++;
+	if (main_countdown && !(interval & 31)) main_countdown--;
+	if (status_countup != 0xff) status_countup++;
+	watchdog_mask &= ~WATCHDOG_MASK_TIMER;
 }
 
 //-----------------------------------------------------------------------------
@@ -66,69 +74,93 @@ SI_INTERRUPT(TIMER3_ISR, TIMER3_IRQn) {
 //
 //-----------------------------------------------------------------------------
 
+bit smbus_read = false;
+bit smbus_error = false;
+bit smbus_busy = false;
 uint8_t data smbus_cmd;
 uint8_t data smbus_data0;
 uint8_t data smbus_data1;
 
-SI_INTERRUPT (SMBUS0_ISR, SMBUS0_IRQn)
-{
-	static uint8_t data smbus_state = SMBUS_IDLE;
+SI_INTERRUPT (SMBUS0_ISR, SMBUS0_IRQn) {
+  bit fail = false;
+  static bit addr_sent = false;
+  static bit data_rcv = false;
 
-	switch (smbus_state) {
-	case SMBUS_IDLE:
-		SMB0CN0_STA = false;
-		SMB0CN0_STO = false;
-		SMB0DAT = BQ72441_I2C_ADDRESS;
-		smbus_state++;
-		break;
-	case SMBUS_WRITE_SENT:
-		if (SMB0CN0_ACK) {
-			SMB0DAT = BQ27441_COMMAND_SOC;
-			smbus_state++;
-		}
-		else smbus_state = SMBUS_ERROR;
-		break;
-	case SMBUS_COMMAND_SENT:
-		if (SMB0CN0_ACK) {
-			SMB0CN0_STA = true;
-			smbus_state++;
-		}
-		else smbus_state = SMBUS_ERROR;
-		break;
-	case SMBUS_RESTART:
-		SMB0CN0_STA = false;
-		SMB0CN0_STO = false;
-		SMB0DAT = BQ72441_I2C_ADDRESS | 0x01;
-		smbus_state++;
-		break;
-	case SMBUS_READ_SENT:
-		if (SMB0CN0_ACK) {
-			SMB0CN0_ACK = true;
-			smbus_state++;
-		}
-		else smbus_state = SMBUS_ERROR;
-		break;
-	case SMBUS_DATA_0:
-		smbus_data0 = SMB0DAT;
-		SMB0CN0_ACK = false;
-		smbus_state++;
-		break;
-	case SMBUS_DATA_1:
-		smbus_data1 = SMB0DAT;
-		SMB0CN0_STO = true;
-		smbus_state = SMBUS_IDLE;
-		isr_send_signal(TASK_ID_SENSORS);
-		break;
-	}
+  if (!SMB0CN0_ARBLOST) {
+      // Normal operation
+      switch (SMB0CN0 & 0xf0) {
+          // Master Transmitter/Receiver: START condition transmitted.
+          case SMB0CN0_MTSTA:
+            SMB0DAT = smbus_read ? BQ72441_I2C_ADDRESS | 0x01 : BQ72441_I2C_ADDRESS & 0xfe;
+            SMB0CN0_STA = false;
+            addr_sent = true;
+            data_rcv = false;
+            break;
 
-	// Error detected
-	if (smbus_state == SMBUS_ERROR) {
-		smbus_data0 = 0xff;
-		smbus_data1 = 0xff;
-		SMB0CN0_STO = true;
-		smbus_state = SMBUS_IDLE;
-		isr_send_signal(TASK_ID_SENSORS);
-	}
+          // Master Transmitter: Data byte transmitted
+          case SMB0CN0_MTDB:
+            if (SMB0CN0_ACK) {
+                if (addr_sent) {
+                    addr_sent = false;
+                    if (!smbus_read) {
+                        SMB0DAT = smbus_cmd;
+                    }
+                    else {}
+                }
+                else {
+                    SMB0CN0_STO = true;
+                    // Signal the task that we are done
+                    if (smbus_busy) isr_set_ready(TASK_ID_SENSORS);
+                    smbus_busy = false;
+                }
+            }
+            else {
+                smbus_error = true;
+                SMB0CN0_STO = true;
+            }
+            break;
 
-	SMB0CN0_SI = false;
+          // Master Receiver: byte received
+          case SMB0CN0_MRDB:
+            if (!data_rcv) {
+                smbus_data0 = SMB0DAT;
+                data_rcv = true;
+                SMB0CN0_ACK = true;
+            }
+            else {
+                smbus_data1 = SMB0DAT;
+                SMB0CN0_ACK = false;
+                SMB0CN0_STO = true;
+
+                // Signal the task that we are done
+                if (smbus_busy) isr_set_ready(TASK_ID_SENSORS);
+                smbus_busy = false;
+            }
+            break;
+
+          default:
+            fail = true;
+            break;
+      }
+  }
+  else {
+      fail = true;
+  }
+
+  // Reset state on failure
+  if (fail) {
+    SMB0CF &= ~0x80;
+    SMB0CF |= 0x80;
+    SMB0CN0_STA = false;
+    SMB0CN0_STO = false;
+    SMB0CN0_ACK = false;
+    smbus_error = true;
+
+    // Signal the task that we are done
+    if (smbus_busy) isr_set_ready(TASK_ID_SENSORS);
+    smbus_busy = false;
+  }
+
+  // Clear interrupt flag
+  SMB0CN0_SI = false;
 }
