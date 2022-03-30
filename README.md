@@ -2,6 +2,8 @@
 
 Portable ADS-B/Flarm/OGN traffic receiver, AHRS, GNSS, pressure altitude and CO-alarm based on the Stratux project and a Raspberry Pi Zero 2.
 
+![Stratux Zero](docs/images/stratux-zero-header.jpg)
+
 The Flarm/OGN can be reconfigured for 978 MHz UAT for non-European use.
 
 This project is based on the great work of:
